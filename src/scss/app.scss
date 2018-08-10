@@ -1,0 +1,242 @@
+$task-color: lightblue;
+$task-dayof-color: purple;
+$dayoff-color: lightgray;
+$current-day-border-color: red;
+$border-color: black;
+$vacation-day-color: red;
+$row-hover-color: lighten(lightgray, 10%);
+$day-color: white;
+$day-cell-width: 1.7rem;
+$row-height: 1.6rem;
+$group-cell-width: 5rem;
+$label-gradient-transparensy-start: 0.5;
+
+@mixin task-label-attenuation($color) {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: $day-cell-width;
+    right: 0;
+    background: linear-gradient(to left, rgba($color, 1) 0%, rgba($color, $label-gradient-transparensy-start) 100%);
+}
+
+.task-calendar {
+    display: table;
+    border-collapse: separate;
+
+    .row {
+        display: table-row;
+        min-width: 100%;
+        height: 1.2rem;
+        clear: both;
+        cursor: default;
+
+        &:not(.row-header):hover {
+            background-color: $row-hover-color;
+        }
+
+        &.row-header {
+            &.month-header {
+                .day {
+                    border-left: none;
+                    border-right: none;
+
+                    &.period-start {
+                        border-left: 1px dotted $border-color;
+                    }
+
+                    &.period-end {
+                        border-right: 1px dotted $border-color;
+                    }
+
+                    &.month-break {
+                        border-left: 1px dotted $border-color;
+                    }
+
+                    &.month-start {
+                        border-left: 1px dotted $border-color;
+                    }
+
+                    &.month-end:last-child {
+                        border-right: 1px dotted $border-color;
+                    }
+                }
+            }
+
+            &.date-header {}
+        }
+
+        &.row-block-start {
+            .col {
+                border-top: 1px dotted black;
+            }
+        }
+
+        .col {
+            display: table-cell;
+            border: 1px solid transparent;
+            border-left: 1px dotted $border-color;
+            padding-left: 0.2rem;
+            padding-right: 0.2rem;
+            white-space: nowrap;
+
+            &:last-child {
+                border-right: 1px dotted $border-color;
+            }
+
+            &.group {
+                width: $group-cell-width;
+                min-width: $group-cell-width;
+                max-width: $group-cell-width;
+                min-height: $row-height;
+                max-height: $row-height;
+                height: $row-height;
+                line-height: $row-height;
+            }
+
+            &.day {
+                min-width: $day-cell-width;
+                max-width: $day-cell-width;
+                width: $day-cell-width;
+                min-height: $row-height;
+                max-height: $row-height;
+                height: $row-height;
+                line-height: $row-height;
+                box-sizing: border-box;
+
+                &.day-off {
+                    background-color: $dayoff-color;
+
+                    &.task {
+                        background-color: $task-dayof-color;
+                    }
+                }
+
+                &.task {
+                    background-color: $task-color;
+                }
+
+                &.task-start {}
+
+                &.task-has-next {}
+
+                &.labeled {
+                    position: relative;
+
+                    .task-label {
+                        position: absolute;
+                        white-space: nowrap;
+                        z-index: 3;
+
+                        @for $i from 1 through 31 {
+                            &.task-label-length-#{$i} {
+                                overflow: hidden;
+                                max-width: $day-cell-width * $i - 0.1;
+                                left: 0;
+
+                                &:hover {
+                                    overflow: unset;
+
+                                    &:before {
+                                        background: none;
+                                    }
+                                }
+                            }
+                        }
+
+                        &.end-task {
+                            &:before {
+                                @include task-label-attenuation($task-color);
+                            }
+                        }
+
+                        &.end-dayoff {
+                            &:before {
+                                @include task-label-attenuation($dayoff-color);
+                            }
+                        }
+
+                        &.end-day {
+                            &:before {
+                                @include task-label-attenuation($day-color);
+                            }
+                        }
+                    }
+                }
+
+                &.task-hasprev {}
+
+                &.last-day-of-month {}
+
+                &.first-day-of-month {}
+
+                &.period-start {}
+
+                &.month-end {}
+
+                &.month-break {
+                    border: none;
+                    border-left: 1px dotted black;
+                }
+
+                &.month-start {}
+
+                &.period-end {}
+
+                &.month-end {}
+
+                &.task-hover {
+                    border: 2px solid green;
+
+                    &.task-start {}
+
+                    &.task-end {}
+
+                    &.task-has-next {
+                        border-right: none;
+                    }
+
+                    &.task-hasprev {
+                        border-left: none;
+                    }
+
+                    & ~ .task.labeled .task-label {
+                        display: none;
+                    }
+
+                    & + .task.labeled {}
+                }
+
+                &.now {
+                    border-left: 2px solid $current-day-border-color;
+                }
+
+                &.vacation {
+                    background-color: $vacation-day-color;
+                }
+            }
+        }
+    }
+}
+
+/**
+ *
+ */
+.calendar {
+    .row {
+        &.row-header {
+            .col {
+                font-weight: bold;
+                text-align: center;
+                border-bottom: 1px solid $border-color;
+
+                &.group {
+                    text-align: left;
+                }
+            }
+
+            &.month-header {}
+        }
+    }
+}
