@@ -11752,11 +11752,11 @@ class CalendarTaskCollection {
             let key = this.makeKey(cTask);
             // if (key !== 'Baby_jcb' && key !== 'Beauty_mastercard') continue;
             // if (key !== 'Automotive_jcb') continue;
-            if (key !== 'Baby_jcb') continue;
+            // if (key !== 'Baby_jcb') continue;
             // if (key !== 'Books_maestro' && key !== 'Books_mastercard' && key !== 'Computers_jcb') continue;
             // if (key !== 'Computers_jcb') continue;
             // if (key !== 'Books_maestro') continue;
-            // if (key !== 'Automotive_solo') continue;
+            if (key !== 'Automotive_solo') continue;
 
             if (_map.has(key)) {
                 let mapped = _map.get(key) as KeyValuePairCollection;
