@@ -11580,6 +11580,121 @@ class CalendarTask {
 
 }
 
+class KeyValuePair {
+    public constructor(private key: any, private value: any) {
+
+    }
+
+    public getKey(): any {
+        return this.key;
+    }
+    public setKey(k: any) {
+        this.key = k;
+    }
+    public getValue(): any {
+        return this.value;
+    }
+    public setValue(v: any) {
+        this.value = v;
+    }
+}
+class KeyValuePairCollection {
+    private _data: Array<KeyValuePair> = [];
+    public constructor() {
+
+    }
+    public getSize(): number {
+        return this._data.length;
+    }
+
+    public get(key: any): any {
+        let idx = this.findKeyIndex(key);
+        if (idx === false) {
+            return null;
+        }
+        return this._data[idx].getValue();
+    }
+
+    public set(key: any, value: any) {
+        let idx = this.findKeyIndex(key);
+        let data = new KeyValuePair(key, value);
+        if (idx === false) {
+            this._data.push(data);
+        } else {
+            this._data[idx] = data;
+        }
+    }
+
+    public getKeys(): Array<any> {
+        let keys: Array<any> = [];
+        if (this.getSize() >= 0) {
+            for (let i = 0; i < this.getSize(); i++) {
+                keys.push(this._data[i].getKey());
+            }
+        }
+        return keys;
+    }
+    public getValues(): Array<any> {
+        let values: Array<any> = [];
+        if (this.getSize() >= 0) {
+            for (let i = 0; i < this.getSize(); i++) {
+                values.push(this._data[i].getValue());
+            }
+        }
+        return values;
+    }
+
+    public sortByKeys() {
+        this._data.sort((a: KeyValuePair, b: KeyValuePair) => {
+            let aKey = a.getKey();
+            let bKey = b.getKey();
+            if (aKey < bKey) {
+                return -1;
+            }
+            if (aKey > bKey) {
+                return 1;
+            }
+            return 0;
+        })
+    }
+    public sort(callbackFn?: any) {
+        if (!callbackFn) {
+            this._data.sort((a: KeyValuePair, b: KeyValuePair) => {
+                let aKey = a.getValue();
+                let bKey = b.getValue();
+                if (aKey < bKey) {
+                    return -1;
+                }
+                if (aKey > bKey) {
+                    return 1;
+                }
+                return 0;
+            });
+        } else {
+            this._data.sort(callbackFn);
+        }
+    }
+
+    public has(key: any): boolean {
+        return this.findKeyIndex(key) !== false;
+    }
+
+    private findKeyIndex(key: any): number | false {
+        if (this.getSize() < 0) return false;
+        for (let i = 0; i < this.getSize(); i++) {
+            let kv = this._data[i];
+            if (kv.getKey() == key) {
+                return i;
+            }
+        }
+        return false;
+    }
+
+    public toArray(): Array<KeyValuePair> {
+        return this._data;
+    }
+}
+
 class CalendarTaskCollection {
     private _dataTasks: Array<CalendarTask> = [];
     private _cRows: Array<CalendarRow> = [];
@@ -11631,8 +11746,7 @@ class CalendarTaskCollection {
     }
 
     private group() {
-        // let _map = new Map(); // #ES6 only
-        let _map = new Map();
+        let _map = new KeyValuePairCollection();
         for (let j = 0; j < this._dataTasks.length; j++) {
             let cTask = this._dataTasks[j];
             let key = this.makeKey(cTask);
@@ -11645,54 +11759,43 @@ class CalendarTaskCollection {
             // if (key !== 'Automotive_solo') continue;
 
             if (_map.has(key)) {
-                let mapped = _map.get(key);
-                mapped.set(mapped.size + 1, cTask);
+                let mapped = _map.get(key) as KeyValuePairCollection;
+                mapped.set(mapped.getSize() + 1, cTask);
             } else {
-                _map.set(key, (new Map()).set(1, cTask));
+                let newCollection = new KeyValuePairCollection();
+                newCollection.set(0, cTask);
+                _map.set(key, newCollection);
             }
         }
 
-        _map.forEach((value: any, key: any) => {
-            // let aMap = Array.from(value, (v: any, k: any) => {   // #ES6 only
-            //     return v[1] as CalendarTask;                     // #ES6 only
-            // });                                                  // #ES6 only
-            let aMap = [].slice.call(value);
-            console.log(aMap);
+        for (let i = 0; i < _map.getKeys().length; i++) {
+            let value = _map.get(_map.getKeys()[i]);
+            value.sort(
+                (a: KeyValuePair, b: KeyValuePair) => {
+                    let aDate: IMoment = a.getValue().getDataRow().getStart();
+                    let bDate: IMoment = b.getValue().getDataRow().getStart();
 
-            aMap.sort((a: CalendarTask, b: CalendarTask) => {
-                let aDate: IMoment = a.getDataRow().getStart();
-                let bDate: IMoment = b.getDataRow().getStart();
-
-                if (aDate.isLT(bDate, 'y-m-d')) {
-                    return -1;
-                } else if (aDate.isGT(bDate, 'y-m-d')) {
-                    return 1;
-                } else {
-                    return 0;
+                    if (aDate.isLT(bDate, 'y-m-d')) {
+                        return -1;
+                    } else if (aDate.isGT(bDate, 'y-m-d')) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
                 }
-
-                // if (a.getDataRow().getStart().toDate() < b.getDataRow().getStart().toDate()) {
-                //     return -1;
-                // }
-                // if (a.getDataRow().getStart().toDate() > b.getDataRow().getStart().toDate()) {
-                //     return 1;
-                // }
-                // return 0;
-            });
-            _map.set(key, aMap);
-        });
+            );
+        }
 
         this._cRows = [];
 
-        _map.forEach((value: Array<CalendarTask>, key: string) => {
-            let acTasks: Array<CalendarTask> = value;
+        for (let k = 0; k < _map.getKeys().length; k++) {
+            let kvpc: Array<KeyValuePair> = _map.get(_map.getKeys()[k]).toArray();
+            let acTasks: Array<CalendarTask> = (_map.get(_map.getKeys()[k]) as KeyValuePairCollection).getValues() as Array<CalendarTask>;
             let tmpTasks: Array<CalendarTask> = [];
             let i = 0;
-
             while (true) {
                 i++;
                 let cRow = new CalendarRow();
-
                 while (acTasks.length > 0) {
                     let item = acTasks.shift();
                     if (!item || typeof (item) == 'undefined') {
@@ -11707,7 +11810,6 @@ class CalendarTaskCollection {
                             let prevCT: CalendarTask = cRow.getByIndex(cRow.getTasksCount() - 2) as CalendarTask; // -2 because we have previous element and current element which one we just added
                             prevCT.setNextRowTaskId(item.getId());
                             item.setPrevRowTaskId(prevCT.getId());
-                            console.log(tmpTasks.length, prevCT, item);
                         }
                     }
                 }
@@ -11715,8 +11817,7 @@ class CalendarTaskCollection {
                 if (tmpTasks.length == 0) {
                     break;
                 } else {
-                    acTasks = [].slice.call(tmpTasks); // ES5
-                    // acTasks = Array.from(tmpTasks); // ES6 only
+                    acTasks = tmpTasks;
                     tmpTasks = [];
                 }
                 if (i == 20) {
@@ -11724,7 +11825,7 @@ class CalendarTaskCollection {
                     break;
                 }
             }
-        });
+        }
     }
 
     private makeKey(dataTask: CalendarTask): string {

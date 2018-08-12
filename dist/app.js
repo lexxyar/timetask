@@ -3,7 +3,7 @@
  * DUMMY DATA
  * @type {any}
  */
-const data = JSON.parse(JSON.stringify([
+var data = JSON.parse(JSON.stringify([
     {
         "id": 1,
         "user": "Health",
@@ -9908,13 +9908,13 @@ const data = JSON.parse(JSON.stringify([
 /**
  * Class of calendar data row description
  */
-class CalendarDataRow {
+var CalendarDataRow = /** @class */ (function () {
     /**
      * Class constructor
      *
      * @param {IDataRow} obj Input row with data, which compare with IDataRow interface
      */
-    constructor(obj) {
+    function CalendarDataRow(obj) {
         this._id = obj.id;
         this._user = obj.user;
         this._type = obj.type;
@@ -9937,71 +9937,75 @@ class CalendarDataRow {
      * Return row ID
      * @returns {TDataId}
      */
-    getId() {
+    CalendarDataRow.prototype.getId = function () {
         return this._id;
-    }
+    };
     /**
      * Return user name
      * @returns {string}
      */
-    getUser() {
+    CalendarDataRow.prototype.getUser = function () {
         return this._user;
-    }
+    };
     /**
      * Return task type
      * @returns {string}
      */
-    getType() {
+    CalendarDataRow.prototype.getType = function () {
         return this._type;
-    }
+    };
     /**
      * Return task start date
      * @returns {IMoment}
      */
-    getStart() {
+    CalendarDataRow.prototype.getStart = function () {
         return this._start;
-    }
+    };
     /**
      * Return task duration
      * @returns {number}
      */
-    getDuration() {
+    CalendarDataRow.prototype.getDuration = function () {
         return this._duration;
-    }
+    };
     /**
      * Return task label
      * @returns {string}
      */
-    getLabel() {
+    CalendarDataRow.prototype.getLabel = function () {
         return this._label;
-    }
+    };
     /**
      * Return day off count
      * @returns {number}
      */
-    getDayoff() {
+    CalendarDataRow.prototype.getDayoff = function () {
         return this._dayoff;
-    }
+    };
     /**
      * Return day off date
      * @returns {IMoment}
      */
-    getDayoffdate() {
+    CalendarDataRow.prototype.getDayoffdate = function () {
         return this._dayoffdate;
+    };
+    return CalendarDataRow;
+}());
+var CalendarSettings = /** @class */ (function () {
+    function CalendarSettings() {
     }
-}
-class CalendarSettings {
-}
+    return CalendarSettings;
+}());
 /**
  * Calendar class
  *
  * Main class, which render calendar UI. This is entery point of calendar application
  */
-class Calendar {
+var Calendar = /** @class */ (function () {
     /**
      * Class constructor
      */
-    constructor(selector) {
+    function Calendar(selector) {
         /**
          * Collection of tasks
          * @type {any}
@@ -10051,47 +10055,47 @@ class Calendar {
      * Return start date for calendar
      * @returns {IMoment}
      */
-    static getStartPeriod() {
+    Calendar.getStartPeriod = function () {
         return new Moment().startOf('month').add(-1, 'weeks');
-    }
+    };
     /**
      * Return end date for calendar
      * @returns {IMoment}
      */
-    static getEndPeriod() {
+    Calendar.getEndPeriod = function () {
         return new Moment().endOf('month').add(4, 'days');
-    }
+    };
     /**
      * Loading data to calendar
      * @param data
      * @returns {Calendar}
      */
-    setData(data) {
+    Calendar.prototype.setData = function (data) {
         this._taskCollection = new CalendarTaskCollection();
         this._taskCollection.loadArray(data);
         return this;
-    }
+    };
     /**
      * Rerender calendar
      */
-    refresh() {
+    Calendar.prototype.refresh = function () {
         this.render();
-    }
+    };
     /**
      * Rendering calendar UI
      */
-    render() {
+    Calendar.prototype.render = function () {
         // Make header
-        let row;
+        var row;
         // Get start of calendars period
-        let startMmt = Calendar.getStartPeriod();
+        var startMmt = Calendar.getStartPeriod();
         // Get end of calendars period
-        let endMmt = Calendar.getEndPeriod();
+        var endMmt = Calendar.getEndPeriod();
         // Calculate count of days in period
-        let diffDays = endMmt.diff(startMmt) + 1;
-        let label;
+        var diffDays = endMmt.diff(startMmt) + 1;
+        var label;
         // Create wrapper for calendar
-        let cWrapper = document.createElement('div');
+        var cWrapper = document.createElement('div');
         cWrapper.classList.add('task-calendar');
         // Create month names
         row = CalendarHtml.createRow(true);
@@ -10123,61 +10127,61 @@ class Calendar {
         // Check, if we have data
         if (this._taskCollection.getSize() > 0) {
             // Create variable for trace user name changing
-            let prevUser = '';
+            var prevUser = '';
             // Loop at data and create rows for UI
-            for (let j = 0; j < this._taskCollection.getSize(); j++) {
-                let cRow = this._taskCollection.getByIndex(j);
+            for (var j = 0; j < this._taskCollection.getSize(); j++) {
+                var cRow = this._taskCollection.getByIndex(j);
                 if (!cRow) {
                     continue;
                 }
                 // Create row tag
-                let row = CalendarHtml.createRow();
+                var row_1 = CalendarHtml.createRow();
                 // Add CSS class if user name has change
                 if (prevUser && prevUser !== cRow.getUser()) {
-                    row.classList.add('row-block-start');
+                    row_1.classList.add('row-block-start');
                 }
                 prevUser = cRow.getUser();
                 // Create cell with user name
-                let label = CalendarHtml.createRowGroup(cRow.getUser());
-                row.appendChild(label);
+                var label_1 = CalendarHtml.createRowGroup(cRow.getUser());
+                row_1.appendChild(label_1);
                 // Create cell with task type
-                label = CalendarHtml.createRowGroup(cRow.getType());
-                row.appendChild(label);
+                label_1 = CalendarHtml.createRowGroup(cRow.getType());
+                row_1.appendChild(label_1);
                 // Loop at all dates in period
-                for (let i = 0; i < diffDays; i++) {
+                for (var i = 0; i < diffDays; i++) {
                     // Create moment of current iteration
-                    let mmt = startMmt.clone().add(i);
+                    var mmt = startMmt.clone().add(i);
                     // Create cell with simple day
-                    let day = CalendarHtml.createDay(mmt);
+                    var day = CalendarHtml.createDay(mmt);
                     // Adding CSS classes and check if it first day of month
-                    let firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
+                    var firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
                     // Check if it first work day
-                    let firstWorkDayOfMonth = mmt.isFirstWorkDayOfMonth();
+                    var firstWorkDayOfMonth = mmt.isFirstWorkDayOfMonth();
                     // Get task on current date
-                    let task = cRow.getTaskOnDate(mmt);
+                    var task = cRow.getTaskOnDate(mmt);
                     if (task) {
                         // Get calendar task date
-                        let calDate = task.getCTDate(mmt);
+                        var calDate = task.getCTDate(mmt);
                         if (calDate) {
                             // Render date from data
                             calDate.render(day, task.getId());
                             // Create local vars
-                            let idx = task.getLastDateIndex();
-                            let duration = task.getDataRow().getDuration();
-                            let firstDateOfMonth = mmt.startOf('month');
-                            let lastDateOfMonth = mmt.endOf('month');
-                            let tillEndOfMonth = lastDateOfMonth.diff(mmt);
-                            let tillStartOfMonth = firstDateOfMonth.diff(mmt);
-                            let tillEndOfPeriod = endMmt.diff(mmt);
-                            let tillStartOfPeriod = startMmt.diff(mmt);
-                            let daysLeft = (idx >= 0) ? (duration - idx - 1) : 365;
-                            let daysSpent = (idx >= 0) ? (idx + 1) : 0;
-                            let spaceToNextTask = cRow.getSpaseToNextTask(mmt);
-                            let daysInTask = task.getEndDate().diff(task.getStartDate()) + 1;
-                            let textWidth = this.getLabelLengthInDays(task.getDataRow().getLabel());
-                            let prevRowTaskId = task.getPrevRowTaskId();
-                            let nextRowTaskId = task.getNextRowTaskId();
-                            let isStartPeriod = calDate.getMoment().isSame(Calendar.getStartPeriod(), 'y-m-d');
+                            var idx = task.getLastDateIndex();
+                            var duration = task.getDataRow().getDuration();
+                            var firstDateOfMonth = mmt.startOf('month');
+                            var lastDateOfMonth = mmt.endOf('month');
+                            var tillEndOfMonth = lastDateOfMonth.diff(mmt);
+                            var tillStartOfMonth = firstDateOfMonth.diff(mmt);
+                            var tillEndOfPeriod = endMmt.diff(mmt);
+                            var tillStartOfPeriod = startMmt.diff(mmt);
+                            var daysLeft = (idx >= 0) ? (duration - idx - 1) : 365;
+                            var daysSpent = (idx >= 0) ? (idx + 1) : 0;
+                            var spaceToNextTask = cRow.getSpaseToNextTask(mmt);
+                            var daysInTask = task.getEndDate().diff(task.getStartDate()) + 1;
+                            var textWidth = this.getLabelLengthInDays(task.getDataRow().getLabel());
+                            var prevRowTaskId = task.getPrevRowTaskId();
+                            var nextRowTaskId = task.getNextRowTaskId();
+                            var isStartPeriod = calDate.getMoment().isSame(Calendar.getStartPeriod(), 'y-m-d');
                             // Create corresponding values in dataset
                             day.dataset.taskDuration = String(duration);
                             day.dataset.taskTillEndOfMonth = String(tillEndOfMonth);
@@ -10210,11 +10214,11 @@ class Calendar {
                                 // * textWidth              label width
                                 // let min: number = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1]);
                                 // let labelLength: number = this.getMinNumber([min, textWidth]);
-                                let labelLength = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
+                                var labelLength = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
                                 // Get date where last label symbol is
-                                let labelEndDate = mmt.clone().add(labelLength - 1);
+                                var labelEndDate = mmt.clone().add(labelLength - 1);
                                 // Create task label HTML element
-                                let span = CalendarHtml.createTaskText(task.getDataRow().getLabel());
+                                var span = CalendarHtml.createTaskText(task.getDataRow().getLabel());
                                 // Add some CSS classes
                                 span.classList.add('task-label');
                                 span.classList.add('task-label-length-' + String(labelLength));
@@ -10236,42 +10240,43 @@ class Calendar {
                     }
                     // If it first day of month, add gap between monthes
                     if (firstDayOfMonth && i != 0) {
-                        let monthBreak = CalendarHtml.createCell();
+                        var monthBreak = CalendarHtml.createCell();
                         monthBreak.classList.add('month-break');
-                        row.appendChild(monthBreak);
+                        row_1.appendChild(monthBreak);
                     }
-                    row.appendChild(day);
+                    row_1.appendChild(day);
                 }
-                cWrapper.appendChild(row);
+                cWrapper.appendChild(row_1);
             }
         }
         this._div.appendChild(cWrapper);
         console.log('rendered');
-    }
+    };
     /**
      * Return minimum from input numbers array
      * @param {Array<number>} inputs
      * @returns {number}
      */
-    getMinNumber(inputs) {
+    Calendar.prototype.getMinNumber = function (inputs) {
         return this.getMinMaxNumber(inputs, true);
-    }
+    };
     /**
      * Return maximum from input numbers array
      * @param {Array<number>} inputs
      * @returns {number}
      */
-    getMaxNumber(inputs) {
+    Calendar.prototype.getMaxNumber = function (inputs) {
         return this.getMinMaxNumber(inputs);
-    }
+    };
     /**
      * Return minimum/maximum from input numbers array
      * @param {Array<number>} inputs
      * @param {boolean} min
      * @returns {number}
      */
-    getMinMaxNumber(inputs, min = false) {
-        inputs.sort((a, b) => {
+    Calendar.prototype.getMinMaxNumber = function (inputs, min) {
+        if (min === void 0) { min = false; }
+        inputs.sort(function (a, b) {
             return a - b;
         });
         if (min) {
@@ -10280,7 +10285,7 @@ class Calendar {
         else {
             return inputs.pop();
         }
-    }
+    };
     /**
      * Generate date range
      * @param {HTMLElement} row
@@ -10288,30 +10293,31 @@ class Calendar {
      * @param {number} diffDays
      * @param {boolean} asCell
      */
-    generateDateRange(row, startMmt, diffDays, asCell = false) {
+    Calendar.prototype.generateDateRange = function (row, startMmt, diffDays, asCell) {
+        if (asCell === void 0) { asCell = false; }
         // Loop for all days in period
-        for (let i = 0; i < diffDays; i++) {
+        for (var i = 0; i < diffDays; i++) {
             // Create date on each day
-            let mmt = startMmt.clone().add(i);
-            let day;
+            var mmt = startMmt.clone().add(i);
+            var day = void 0;
             if (asCell) {
                 day = CalendarHtml.createCell();
             }
             else {
                 day = CalendarHtml.createDay(mmt);
-                let label = CalendarHtml.createText(mmt.format('d'));
+                var label = CalendarHtml.createText(mmt.format('d'));
                 day.appendChild(label);
             }
-            let firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
+            var firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
             // If it first day of month add gap
             if (firstDayOfMonth && i != 0) {
-                let monthBreak = CalendarHtml.createCell();
+                var monthBreak = CalendarHtml.createCell();
                 monthBreak.classList.add('month-break');
                 row.appendChild(monthBreak);
             }
             row.appendChild(day);
         }
-    }
+    };
     /**
      * Add data to HTML day
      * @param {HTMLElement} day
@@ -10320,14 +10326,14 @@ class Calendar {
      * @param {number} diffDays
      * @returns {boolean}
      */
-    addDayData(day, mmt, i, diffDays) {
+    Calendar.prototype.addDayData = function (day, mmt, i, diffDays) {
         // Create moment of first and last date of month
-        let firstDayOfMonth = mmt.isFirstDayOfMonth();
-        let lastDayOfMonth = mmt.isLastDayOfMonth();
+        var firstDayOfMonth = mmt.isFirstDayOfMonth();
+        var lastDayOfMonth = mmt.isLastDayOfMonth();
         // If start of period
         if (i == 0) {
-            let endOfMonth = mmt.clone().endOf('month');
-            let len = mmt.diff(endOfMonth) + 1;
+            var endOfMonth = mmt.clone().endOf('month');
+            var len = mmt.diff(endOfMonth) + 1;
             day.classList.add('period-start');
             day.classList.add('cell-span-' + String(len));
             day.dataset.monthLength = String(len);
@@ -10345,67 +10351,74 @@ class Calendar {
             day.classList.add('month-end');
         }
         return firstDayOfMonth;
-    }
+    };
     /**
      * Calculate and return label length
      * @param {string} text
      * @returns {number}
      */
-    getLabelLengthInDays(text) {
+    Calendar.prototype.getLabelLengthInDays = function (text) {
         // Create canvas
-        let canvas = document.createElement('canvas');
+        var canvas = document.createElement('canvas');
         // Get 2D context
-        let ctx = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d');
         // Set font size and font family
         ctx.font = this._htmlFontSize + 'px ' + this._htmlFontFamily;
         // Get text length in pixels
-        let w = ctx.measureText(text).width;
+        var w = ctx.measureText(text).width;
         // FIXME: 1.7 is $day-cell-width in app.scss. Move it to calendar settings
         // Calculate text length in calendar days
         w = w / (this._htmlFontSize * 1.7);
         // Round up
         w = Math.ceil(w);
         return w;
-    }
-}
+    };
+    return Calendar;
+}());
 /**
  * Helper class
  */
-class CalendarTools {
+var CalendarTools = /** @class */ (function () {
+    function CalendarTools() {
+    }
     /**
      * Return formatted number with fixed length 2 and leading zeros
      * @param {number} i
      * @returns {string}
      */
-    static formatNumber(i) {
+    CalendarTools.formatNumber = function (i) {
         return CalendarTools.pad(i);
-    }
+    };
     /**
      * Return formatted number of fixed length with leading zeros
      * @param {number} i
      * @param {number} length
      * @returns {string}
      */
-    static pad(i, length = 2) {
-        let s = i.toString();
-        for (let i = s.length; i < length; i++) {
+    CalendarTools.pad = function (i, length) {
+        if (length === void 0) { length = 2; }
+        var s = i.toString();
+        for (var i_1 = s.length; i_1 < length; i_1++) {
             s = '0' + s;
         }
         return s;
-    }
-}
+    };
+    return CalendarTools;
+}());
 /**
  * Helper class for generate HTML objects
  */
-class CalendarHtml {
+var CalendarHtml = /** @class */ (function () {
+    function CalendarHtml() {
+    }
     /**
      * Create text node
      * @param {string} label
      * @returns {Text}
      */
-    static createText(label) {
+    CalendarHtml.createText = function (label) {
         return document.createTextNode(label);
-    }
+    };
     /**
      * Create DIV tag with CSS classes:
      * - row
@@ -10414,14 +10427,14 @@ class CalendarHtml {
      * @param {boolean} bHeader
      * @returns {HTMLElement}
      */
-    static createRow(bHeader) {
-        let div = document.createElement('div');
+    CalendarHtml.createRow = function (bHeader) {
+        var div = document.createElement('div');
         div.classList.add('row');
         if (bHeader) {
             div.classList.add('row-header');
         }
         return div;
-    }
+    };
     /**
      * Create DIV tag for calendar day cell with CSS classes using moment
      * Add CSS classes:
@@ -10436,8 +10449,8 @@ class CalendarHtml {
      * @param {IMoment} mmt
      * @returns {HTMLElement}
      */
-    static createDay(mmt) {
-        let day = document.createElement('div');
+    CalendarHtml.createDay = function (mmt) {
+        var day = document.createElement('div');
         day.classList.add('col');
         day.classList.add('day');
         day.dataset.date = mmt.format('y-m-d');
@@ -10450,30 +10463,30 @@ class CalendarHtml {
             day.classList.add('now');
         }
         return day;
-    }
+    };
     /**
      * Create HTML DIV element with CSS classes:
      * - col
      * - day
      * @returns {HTMLElement}
      */
-    static createCell() {
-        let div = document.createElement('div');
+    CalendarHtml.createCell = function () {
+        var div = document.createElement('div');
         div.classList.add('col');
         div.classList.add('day');
         return div;
-    }
+    };
     /**
      * Create SPAN tag with text node for task label
      * @param {string} label
      * @returns {HTMLElement}
      */
-    static createTaskText(label) {
-        let span = document.createElement('span');
-        let text = CalendarHtml.createText(label);
+    CalendarHtml.createTaskText = function (label) {
+        var span = document.createElement('span');
+        var text = CalendarHtml.createText(label);
         span.appendChild(text);
         return span;
-    }
+    };
     /**
      * Create DIV tag with CSS classes for cell with user name and task type values
      * Add CSS classes:
@@ -10483,23 +10496,25 @@ class CalendarHtml {
      * @param {string} label
      * @returns {HTMLElement}
      */
-    static createRowGroup(label = '') {
-        let div = document.createElement('div');
+    CalendarHtml.createRowGroup = function (label) {
+        if (label === void 0) { label = ''; }
+        var div = document.createElement('div');
         div.classList.add('col');
         div.classList.add('group');
         if (label) {
-            let text = document.createTextNode(label);
+            var text = document.createTextNode(label);
             div.appendChild(text);
         }
         return div;
-    }
-}
+    };
+    return CalendarHtml;
+}());
 // TODO: Create default mask constant
 // TODO: Create named list with popular masks
 /**
  * Moment
  */
-class Moment {
+var Moment = /** @class */ (function () {
     /**
      * Class constructor
      *
@@ -10510,7 +10525,8 @@ class Moment {
      * @param {number} minutes
      * @param {number} seconds
      */
-    constructor(sDate = '', month, date, hours, minutes, seconds) {
+    function Moment(sDate, month, date, hours, minutes, seconds) {
+        if (sDate === void 0) { sDate = ''; }
         this.sDate = sDate;
         /**
          * Date storage
@@ -10522,7 +10538,7 @@ class Moment {
             this._oDate = new Date(Date.now());
         }
         else {
-            let pType = typeof (sDate);
+            var pType = typeof (sDate);
             if (pType == 'string') {
                 this._oDate = new Date(Date.parse(String(this.sDate)));
             }
@@ -10558,51 +10574,51 @@ class Moment {
      * Return year
      * @returns {number}
      */
-    getYear() {
+    Moment.prototype.getYear = function () {
         return this._oDate.getFullYear();
-    }
+    };
     /**
      * Return number of month starting at 0
      * @returns {number}
      */
-    getMonth() {
+    Moment.prototype.getMonth = function () {
         return this._oDate.getMonth();
-    }
+    };
     /**
      * Return date
      * @returns {number}
      */
-    getDate() {
+    Moment.prototype.getDate = function () {
         return this._oDate.getDate();
-    }
+    };
     /**
      * Return number of day of week
      * @returns {number}
      */
-    getDay() {
+    Moment.prototype.getDay = function () {
         return this._oDate.getDay();
-    }
+    };
     /**
      * Return TRUE if current day is day off
      * @returns {boolean}
      */
-    isDayoff() {
+    Moment.prototype.isDayoff = function () {
         return this.getDay() == 0 || this.getDay() == 6;
-    }
+    };
     /**
      * Make a clone
      * @returns {IMoment}
      */
-    clone() {
+    Moment.prototype.clone = function () {
         return new Moment(this.sDate);
-    }
+    };
     /**
      * Set milliseconds
      * @returns {number}
      */
-    setMilliseconds() {
+    Moment.prototype.setMilliseconds = function () {
         return this._oDate.getMilliseconds();
-    }
+    };
     /**
      * Substruct count of units to date
      * Available measures are:
@@ -10619,9 +10635,10 @@ class Moment {
      * @param {string} measure
      * @returns {IMoment}
      */
-    subtract(count, measure = 'days') {
+    Moment.prototype.subtract = function (count, measure) {
+        if (measure === void 0) { measure = 'days'; }
         return this.add(-count, measure);
-    }
+    };
     /**
      * Add count of units to date
      * Available measures are:
@@ -10638,7 +10655,8 @@ class Moment {
      * @param {string} measure
      * @returns {IMoment}
      */
-    add(count, measure = 'days') {
+    Moment.prototype.add = function (count, measure) {
+        if (measure === void 0) { measure = 'days'; }
         if (!count)
             return this;
         switch (measure) {
@@ -10669,7 +10687,7 @@ class Moment {
         }
         this.sDate = this.format('y-m-d h:i:s');
         return this;
-    }
+    };
     /**
      * Convert number to string of defined length with leading/trailing symbols
      *
@@ -10679,10 +10697,13 @@ class Moment {
      * @param {boolean} trailing
      * @returns {string}
      */
-    pad(num, length = 2, fill = '0', trailing = false) {
-        let sNum = String(num);
-        let sym = fill[0];
-        for (let i = 0; i < length - sNum.length; i++) {
+    Moment.prototype.pad = function (num, length, fill, trailing) {
+        if (length === void 0) { length = 2; }
+        if (fill === void 0) { fill = '0'; }
+        if (trailing === void 0) { trailing = false; }
+        var sNum = String(num);
+        var sym = fill[0];
+        for (var i = 0; i < length - sNum.length; i++) {
             if (trailing) {
                 sNum += sym;
             }
@@ -10691,13 +10712,13 @@ class Moment {
             }
         }
         return sNum;
-    }
+    };
     /**
      * Convert date to string using mask
      * @param {string} mask
      * @returns {string}
      */
-    format(mask) {
+    Moment.prototype.format = function (mask) {
         // TODO: extend format RegExp
         return mask.replace(/y{1,4}/gi, this._oDate.getFullYear().toString())
             .replace(/m{1,2}/gi, this.pad(this._oDate.getMonth() + 1))
@@ -10705,7 +10726,7 @@ class Moment {
             .replace(/h{1,2}/gi, this.pad(this._oDate.getHours()))
             .replace(/i{1,2}/gi, this.pad(this._oDate.getMinutes()))
             .replace(/s{1,2}/gi, this.pad(this._oDate.getSeconds()));
-    }
+    };
     /**
      * Return TRUE if moment is equal by mask
      * By default mask is 'YYYY-MM-DD HH:ii:SS'
@@ -10714,11 +10735,12 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isSame(date, mask = 'YYYY-MM-DD HH:ii:SS') {
-        let current = this.format(mask);
-        let compare = date.format(mask);
+    Moment.prototype.isSame = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        var current = this.format(mask);
+        var compare = date.format(mask);
         return current == compare;
-    }
+    };
     /**
      * Return TRUE if current moment is Great or Equal than input moment
      * Default mask is YYYY-MM-DD HH:ii:SS
@@ -10727,9 +10749,10 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isGE(date, mask = 'YYYY-MM-DD HH:ii:SS') {
+    Moment.prototype.isGE = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         return this.compare(date, mask, '>=');
-    }
+    };
     /**
      * Return TRUE if current moment is Less or Equal than input moment
      * Default mask is YYYY-MM-DD HH:ii:SS
@@ -10738,9 +10761,10 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isLE(date, mask = 'YYYY-MM-DD HH:ii:SS') {
+    Moment.prototype.isLE = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         return this.compare(date, mask, '<=');
-    }
+    };
     /**
      * Return TRUE if current moment is Greater than input moment
      * Default mask is YYYY-MM-DD HH:ii:SS
@@ -10749,9 +10773,10 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isGT(date, mask = 'YYYY-MM-DD HH:ii:SS') {
+    Moment.prototype.isGT = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         return this.compare(date, mask, '>');
-    }
+    };
     /**
      * Return TRUE if current moment is Lower than input moment
      * Default mask is YYYY-MM-DD HH:ii:SS
@@ -10760,9 +10785,10 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isLT(date, mask = 'YYYY-MM-DD HH:ii:SS') {
+    Moment.prototype.isLT = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         return this.compare(date, mask, '<');
-    }
+    };
     // FIXME: make union with isSame method
     /**
      * Return TRUE if current moment is Equal to input moment
@@ -10772,9 +10798,10 @@ class Moment {
      * @param {string} mask
      * @returns {boolean}
      */
-    isEQ(date, mask = 'YYYY-MM-DD HH:ii:SS') {
+    Moment.prototype.isEQ = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         return this.compare(date, mask, '=');
-    }
+    };
     /**
      * Compare current date with input date using sign
      * Available signs are:
@@ -10789,11 +10816,12 @@ class Moment {
      * @param {string} sign
      * @returns {boolean}
      */
-    compare(date, mask, sign = '=') {
-        let current = this.format(mask);
-        let compare = date.format(mask);
-        let currentDate = new Date(Date.parse(current));
-        let compareDate = new Date(Date.parse(compare));
+    Moment.prototype.compare = function (date, mask, sign) {
+        if (sign === void 0) { sign = '='; }
+        var current = this.format(mask);
+        var compare = date.format(mask);
+        var currentDate = new Date(Date.parse(current));
+        var compareDate = new Date(Date.parse(compare));
         if (sign == '>') {
             return currentDate > compareDate;
         }
@@ -10807,7 +10835,7 @@ class Moment {
             return currentDate <= compareDate;
         }
         return currentDate == compareDate;
-    }
+    };
     /**
      * Return moment which equal to start of period
      * Available units are:
@@ -10817,8 +10845,8 @@ class Moment {
      * @param {string} measure
      * @returns {IMoment}
      */
-    startOf(measure) {
-        let res = new Moment();
+    Moment.prototype.startOf = function (measure) {
+        var res = new Moment();
         switch (measure) {
             case 'month':
                 res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
@@ -10826,7 +10854,7 @@ class Moment {
             // FIXME: move out of this method
             // TODO: make extra measurement
             case 'workmonth':
-                let mmt = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
+                var mmt = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
                 res = mmt.clone();
                 while (res.isDayoff()) {
                     res.add(1, 'days');
@@ -10837,7 +10865,7 @@ class Moment {
                 break;
         }
         return res;
-    }
+    };
     // TODO: make extra measurement
     /**
      * Return moment which equal to end of period
@@ -10847,15 +10875,15 @@ class Moment {
      * @param {string} measure
      * @returns {IMoment}
      */
-    endOf(measure) {
-        let res = new Moment();
+    Moment.prototype.endOf = function (measure) {
+        var res = new Moment();
         switch (measure) {
             case 'month':
                 res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth() + 1, 0));
                 break;
         }
         return res;
-    }
+    };
     // FIXME: add date format mask
     /**
      * Return TRUE if moment between two dates
@@ -10864,16 +10892,16 @@ class Moment {
      * @param {IMoment} to
      * @returns {boolean}
      */
-    isBetween(from, to) {
+    Moment.prototype.isBetween = function (from, to) {
         return (this._oDate <= to.toDate() && this._oDate >= from.toDate());
-    }
+    };
     /**
      * Return Date object
      * @returns {Date}
      */
-    toDate() {
+    Moment.prototype.toDate = function () {
         return this._oDate;
-    }
+    };
     // TODO: make extra measurement
     /**
      * Return difference between current moment and given moment in units of measure
@@ -10884,70 +10912,73 @@ class Moment {
      * @param {string} measure
      * @returns {number}
      */
-    diff(date, measure = 'days') {
-        let timeValues = {
+    Moment.prototype.diff = function (date, measure) {
+        if (measure === void 0) { measure = 'days'; }
+        var timeValues = {
             ms2s: 1000,
             s2i: 60,
             i2h: 60,
             h2d: 24
         };
-        let timeDiff = Math.abs(this._oDate.getTime() - date.toDate().getTime());
-        let devider = 1;
+        var timeDiff = Math.abs(this._oDate.getTime() - date.toDate().getTime());
+        var devider = 1;
         switch (measure) {
             case 'days':
                 devider = timeValues.ms2s * timeValues.s2i * timeValues.i2h * timeValues.h2d;
                 break;
         }
         return Math.ceil(timeDiff / devider);
-    }
+    };
     /**
      * Return TRUE if it is last day of month
      * @returns {boolean}
      */
-    isLastDayOfMonth() {
-        let date = this.clone().endOf('month');
+    Moment.prototype.isLastDayOfMonth = function () {
+        var date = this.clone().endOf('month');
         return this.isSame(date, 'y-m-d');
-    }
+    };
     /**
      * Return TRUE if it is first day of month
      * @returns {boolean}
      */
-    isFirstDayOfMonth() {
-        let date = this.clone().startOf('month');
+    Moment.prototype.isFirstDayOfMonth = function () {
+        var date = this.clone().startOf('month');
         return this.isSame(date, 'y-m-d');
-    }
+    };
     /**
      * Return TRUE if it is first day of month which is not day off
      * @returns {boolean}
      */
-    isFirstWorkDayOfMonth() {
-        let date = this.clone().startOf('workmonth');
+    Moment.prototype.isFirstWorkDayOfMonth = function () {
+        var date = this.clone().startOf('workmonth');
         return this.isSame(date, 'y-m-d');
-    }
-}
+    };
+    return Moment;
+}());
 /**
  *
  */
-class CalendarTaskDate {
-    constructor(_date) {
+var CalendarTaskDate = /** @class */ (function () {
+    function CalendarTaskDate(_date) {
         this._date = _date;
         this.hasNext = false;
         this.hasPrev = false;
         this.isFirst = false;
         this.isLast = false;
     }
-    getMoment() {
+    CalendarTaskDate.prototype.getMoment = function () {
         return this._date;
-    }
-    render(day, taskId) {
+    };
+    CalendarTaskDate.prototype.render = function (day, taskId) {
+        var _this = this;
         day.classList.add('task');
         day.dataset.taskId = String(taskId);
         day.classList.add('task-' + taskId);
-        day.addEventListener('mouseenter', (event) => {
-            this.mouseEvent(event, 'mouseenter');
+        day.addEventListener('mouseenter', function (event) {
+            _this.mouseEvent(event, 'mouseenter');
         }, false);
-        day.addEventListener('mouseleave', (event) => {
-            this.mouseEvent(event, 'mouseleave');
+        day.addEventListener('mouseleave', function (event) {
+            _this.mouseEvent(event, 'mouseleave');
         }, false);
         if (this.isFirst) {
             day.classList.add('task-start');
@@ -10961,14 +10992,14 @@ class CalendarTaskDate {
         if (this.hasPrev) {
             day.classList.add('task-hasprev');
         }
-    }
-    mouseEvent(event, eventName) {
+    };
+    CalendarTaskDate.prototype.mouseEvent = function (event, eventName) {
         // TODO: find NEXT and PREV tasks in the same row
         event.preventDefault();
-        let trg = event.target;
-        let dta = trg.dataset.taskId;
-        let els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
-        for (let i = 0; i < els.length; i++) {
+        var trg = event.target;
+        var dta = trg.dataset.taskId;
+        var els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
+        for (var i = 0; i < els.length; i++) {
             if (eventName == 'mouseleave') {
                 els[i].classList.remove('task-hover');
             }
@@ -10976,10 +11007,11 @@ class CalendarTaskDate {
                 els[i].classList.add('task-hover');
             }
         }
-    }
-}
-class CalendarTask {
-    constructor(_dataRow) {
+    };
+    return CalendarTaskDate;
+}());
+var CalendarTask = /** @class */ (function () {
+    function CalendarTask(_dataRow) {
         this._dataRow = _dataRow;
         this._dates = [];
         // private _taskId: string;
@@ -10991,46 +11023,46 @@ class CalendarTask {
         // this._taskId = 'task-' + this._dataRow.getId();
         this.fillDates();
     }
-    getNextRowTaskId() {
+    CalendarTask.prototype.getNextRowTaskId = function () {
         return this._nextRowTaskId;
-    }
-    setNextRowTaskId(id) {
+    };
+    CalendarTask.prototype.setNextRowTaskId = function (id) {
         this._nextRowTaskId = id;
-    }
-    getPrevRowTaskId() {
+    };
+    CalendarTask.prototype.getPrevRowTaskId = function () {
         return this._prevRowTaskId;
-    }
-    setPrevRowTaskId(id) {
+    };
+    CalendarTask.prototype.setPrevRowTaskId = function (id) {
         this._prevRowTaskId = id;
-    }
-    getDataRow() {
+    };
+    CalendarTask.prototype.getDataRow = function () {
         return this._dataRow;
-    }
-    getId() {
+    };
+    CalendarTask.prototype.getId = function () {
         return this._dataRow.getId();
-    }
-    fillDates() {
+    };
+    CalendarTask.prototype.fillDates = function () {
         this._dates = [];
-        let dayoffCnt = this._dataRow.getDayoff();
-        let duration = this._dataRow.getDuration();
-        for (let i = 0; i < duration; i++) {
-            let nextDate = this._dataRow.getStart().clone();
+        var dayoffCnt = this._dataRow.getDayoff();
+        var duration = this._dataRow.getDuration();
+        for (var i = 0; i < duration; i++) {
+            var nextDate = this._dataRow.getStart().clone();
             nextDate.add(i, 'days');
-            let calDate = new CalendarTaskDate(nextDate);
+            var calDate = new CalendarTaskDate(nextDate);
             // set if start date
             calDate.isFirst = this.isFirst();
             // check if not start date
             if (!calDate.isFirst) {
-                let prevDate = this._dates[this._dates.length - 1];
-                let tmpDate = prevDate.getMoment().clone().add(1, 'days');
+                var prevDate_1 = this._dates[this._dates.length - 1];
+                var tmpDate = prevDate_1.getMoment().clone().add(1, 'days');
                 calDate.hasPrev = tmpDate.isSame(calDate.getMoment(), 'YYYYMMDD');
-                prevDate.hasNext = tmpDate.isSame(calDate.getMoment(), 'YYYYMMDD');
-                this._dates[this._dates.length - 1] = prevDate;
+                prevDate_1.hasNext = tmpDate.isSame(calDate.getMoment(), 'YYYYMMDD');
+                this._dates[this._dates.length - 1] = prevDate_1;
             }
             if (calDate.getMoment().isDayoff()) {
                 if (dayoffCnt > 0) {
                     if (this._dataRow.getDayoffdate()) {
-                        let doff = this._dataRow.getDayoffdate();
+                        var doff = this._dataRow.getDayoffdate();
                         if (doff) {
                             if (doff.isSame(calDate.getMoment(), 'YYYYMMDD')) {
                                 dayoffCnt--;
@@ -11054,7 +11086,7 @@ class CalendarTask {
                 this._dates.push(calDate);
             }
         }
-        let prevDate = this._dates[this._dates.length - 1];
+        var prevDate = this._dates[this._dates.length - 1];
         prevDate.isLast = true;
         // TODO: use day off as array
         ////-----------------------------------------------------------------------------
@@ -11064,16 +11096,16 @@ class CalendarTask {
         //         this._dates.push(doff);
         //     }
         // }
-    }
-    isFirst() {
+    };
+    CalendarTask.prototype.isFirst = function () {
         return this._dates.length == 0;
-    }
-    isApplyedToDate(date) {
+    };
+    CalendarTask.prototype.isApplyedToDate = function (date) {
         return this.getCTDate(date) !== null;
-    }
-    getCTDate(date) {
-        for (let i = 0; i < this._dates.length; i++) {
-            let cdt = this._dates[i];
+    };
+    CalendarTask.prototype.getCTDate = function (date) {
+        for (var i = 0; i < this._dates.length; i++) {
+            var cdt = this._dates[i];
             if (cdt.getMoment().isSame(date, 'y-m-d')) {
                 this._lasfFoundedDateIndex = i;
                 return cdt;
@@ -11081,52 +11113,93 @@ class CalendarTask {
         }
         this._lasfFoundedDateIndex = -1;
         return null;
-    }
-    getLastDateIndex() {
+    };
+    CalendarTask.prototype.getLastDateIndex = function () {
         return this._lasfFoundedDateIndex;
-    }
-    isCrossPeriod(periodStart, periodEnd) {
-        for (let i = 0; i < this._dates.length; i++) {
-            let currentDate = this._dates[i];
+    };
+    CalendarTask.prototype.isCrossPeriod = function (periodStart, periodEnd) {
+        for (var i = 0; i < this._dates.length; i++) {
+            var currentDate = this._dates[i];
             if (currentDate.getMoment().isBetween(periodStart, periodEnd)) {
                 return true;
             }
         }
         return false;
-    }
-    getStartDate() {
+    };
+    CalendarTask.prototype.getStartDate = function () {
         return this._dates[0].getMoment();
-    }
-    getEndDate() {
+    };
+    CalendarTask.prototype.getEndDate = function () {
         return this._dates[this._dates.length - 1].getMoment();
+    };
+    CalendarTask.taskNum = 0;
+    return CalendarTask;
+}());
+var KeyValuePair = /** @class */ (function () {
+    function KeyValuePair(key, value) {
+        this.key = key;
+        this.value = value;
     }
-}
-CalendarTask.taskNum = 0;
-class CalendarTaskCollection {
-    constructor() {
-        this._dataTasks = [];
-        this._cRows = [];
+    KeyValuePair.prototype.getKey = function () {
+        return this.key;
+    };
+    KeyValuePair.prototype.setKey = function (k) {
+        this.key = k;
+    };
+    KeyValuePair.prototype.getValue = function () {
+        return this.value;
+    };
+    KeyValuePair.prototype.setValue = function (v) {
+        this.value = v;
+    };
+    return KeyValuePair;
+}());
+var KeyValuePairCollection = /** @class */ (function () {
+    function KeyValuePairCollection() {
+        this._data = [];
     }
-    loadArray(jsonOArray) {
-        this._dataTasks = [];
-        if (jsonOArray.length > 0) {
-            for (let j = 0; j < jsonOArray.length; j++) {
-                let dataRow = new CalendarDataRow(jsonOArray[j]);
-                let cTask = new CalendarTask(dataRow);
-                if (!cTask.isCrossPeriod(Calendar.getStartPeriod(), Calendar.getEndPeriod())) {
-                    continue;
-                }
-                this._dataTasks.push(cTask);
+    KeyValuePairCollection.prototype.getSize = function () {
+        return this._data.length;
+    };
+    KeyValuePairCollection.prototype.get = function (key) {
+        var idx = this.findKeyIndex(key);
+        if (idx === false) {
+            return null;
+        }
+        return this._data[idx].getValue();
+    };
+    KeyValuePairCollection.prototype.set = function (key, value) {
+        var idx = this.findKeyIndex(key);
+        var data = new KeyValuePair(key, value);
+        if (idx === false) {
+            this._data.push(data);
+        }
+        else {
+            this._data[idx] = data;
+        }
+    };
+    KeyValuePairCollection.prototype.getKeys = function () {
+        var keys = [];
+        if (this.getSize() >= 0) {
+            for (var i = 0; i < this.getSize(); i++) {
+                keys.push(this._data[i].getKey());
             }
         }
-        this.sort();
-        this.group();
-    }
-    sort() {
-        let that = this;
-        this._dataTasks.sort((a, b) => {
-            let aKey = that.makeKey(a);
-            let bKey = that.makeKey(b);
+        return keys;
+    };
+    KeyValuePairCollection.prototype.getValues = function () {
+        var values = [];
+        if (this.getSize() >= 0) {
+            for (var i = 0; i < this.getSize(); i++) {
+                values.push(this._data[i].getValue());
+            }
+        }
+        return values;
+    };
+    KeyValuePairCollection.prototype.sortByKeys = function () {
+        this._data.sort(function (a, b) {
+            var aKey = a.getKey();
+            var bKey = b.getKey();
             if (aKey < bKey) {
                 return -1;
             }
@@ -11135,22 +11208,92 @@ class CalendarTaskCollection {
             }
             return 0;
         });
+    };
+    KeyValuePairCollection.prototype.sort = function (callbackFn) {
+        if (!callbackFn) {
+            this._data.sort(function (a, b) {
+                var aKey = a.getValue();
+                var bKey = b.getValue();
+                if (aKey < bKey) {
+                    return -1;
+                }
+                if (aKey > bKey) {
+                    return 1;
+                }
+                return 0;
+            });
+        }
+        else {
+            this._data.sort(callbackFn);
+        }
+    };
+    KeyValuePairCollection.prototype.has = function (key) {
+        return this.findKeyIndex(key) !== false;
+    };
+    KeyValuePairCollection.prototype.findKeyIndex = function (key) {
+        if (this.getSize() < 0)
+            return false;
+        for (var i = 0; i < this.getSize(); i++) {
+            var kv = this._data[i];
+            if (kv.getKey() == key) {
+                return i;
+            }
+        }
+        return false;
+    };
+    KeyValuePairCollection.prototype.toArray = function () {
+        return this._data;
+    };
+    return KeyValuePairCollection;
+}());
+var CalendarTaskCollection = /** @class */ (function () {
+    function CalendarTaskCollection() {
+        this._dataTasks = [];
+        this._cRows = [];
     }
-    getSize() {
+    CalendarTaskCollection.prototype.loadArray = function (jsonOArray) {
+        this._dataTasks = [];
+        if (jsonOArray.length > 0) {
+            for (var j = 0; j < jsonOArray.length; j++) {
+                var dataRow = new CalendarDataRow(jsonOArray[j]);
+                var cTask = new CalendarTask(dataRow);
+                if (!cTask.isCrossPeriod(Calendar.getStartPeriod(), Calendar.getEndPeriod())) {
+                    continue;
+                }
+                this._dataTasks.push(cTask);
+            }
+        }
+        this.sort();
+        this.group();
+    };
+    CalendarTaskCollection.prototype.sort = function () {
+        var that = this;
+        this._dataTasks.sort(function (a, b) {
+            var aKey = that.makeKey(a);
+            var bKey = that.makeKey(b);
+            if (aKey < bKey) {
+                return -1;
+            }
+            if (aKey > bKey) {
+                return 1;
+            }
+            return 0;
+        });
+    };
+    CalendarTaskCollection.prototype.getSize = function () {
         return this._cRows.length;
-    }
-    getByIndex(idx) {
+    };
+    CalendarTaskCollection.prototype.getByIndex = function (idx) {
         if ((idx || idx >= 0) && this._cRows.length > 0 && idx < this._cRows.length) {
             return this._cRows[idx];
         }
         return null;
-    }
-    group() {
-        // let _map = new Map(); // #ES6 only
-        let _map = new Map();
-        for (let j = 0; j < this._dataTasks.length; j++) {
-            let cTask = this._dataTasks[j];
-            let key = this.makeKey(cTask);
+    };
+    CalendarTaskCollection.prototype.group = function () {
+        var _map = new KeyValuePairCollection();
+        for (var j = 0; j < this._dataTasks.length; j++) {
+            var cTask = this._dataTasks[j];
+            var key = this.makeKey(cTask);
             // if (key !== 'Baby_jcb' && key !== 'Beauty_mastercard') continue;
             // if (key !== 'Automotive_jcb') continue;
             if (key !== 'Baby_jcb')
@@ -11160,22 +11303,20 @@ class CalendarTaskCollection {
             // if (key !== 'Books_maestro') continue;
             // if (key !== 'Automotive_solo') continue;
             if (_map.has(key)) {
-                let mapped = _map.get(key);
-                mapped.set(mapped.size + 1, cTask);
+                var mapped = _map.get(key);
+                mapped.set(mapped.getSize() + 1, cTask);
             }
             else {
-                _map.set(key, (new Map()).set(1, cTask));
+                var newCollection = new KeyValuePairCollection();
+                newCollection.set(0, cTask);
+                _map.set(key, newCollection);
             }
         }
-        _map.forEach((value, key) => {
-            // let aMap = Array.from(value, (v: any, k: any) => {   // #ES6 only
-            //     return v[1] as CalendarTask;                     // #ES6 only
-            // });                                                  // #ES6 only
-            let aMap = [].slice.call(value);
-            console.log(aMap);
-            aMap.sort((a, b) => {
-                let aDate = a.getDataRow().getStart();
-                let bDate = b.getDataRow().getStart();
+        for (var i = 0; i < _map.getKeys().length; i++) {
+            var value = _map.get(_map.getKeys()[i]);
+            value.sort(function (a, b) {
+                var aDate = a.getValue().getDataRow().getStart();
+                var bDate = b.getValue().getDataRow().getStart();
                 if (aDate.isLT(bDate, 'y-m-d')) {
                     return -1;
                 }
@@ -11185,39 +11326,31 @@ class CalendarTaskCollection {
                 else {
                     return 0;
                 }
-                // if (a.getDataRow().getStart().toDate() < b.getDataRow().getStart().toDate()) {
-                //     return -1;
-                // }
-                // if (a.getDataRow().getStart().toDate() > b.getDataRow().getStart().toDate()) {
-                //     return 1;
-                // }
-                // return 0;
             });
-            _map.set(key, aMap);
-        });
+        }
         this._cRows = [];
-        _map.forEach((value, key) => {
-            let acTasks = value;
-            let tmpTasks = [];
-            let i = 0;
+        for (var k = 0; k < _map.getKeys().length; k++) {
+            var kvpc = _map.get(_map.getKeys()[k]).toArray();
+            var acTasks = _map.get(_map.getKeys()[k]).getValues();
+            var tmpTasks = [];
+            var i = 0;
             while (true) {
                 i++;
-                let cRow = new CalendarRow();
+                var cRow = new CalendarRow();
                 while (acTasks.length > 0) {
-                    let item = acTasks.shift();
+                    var item = acTasks.shift();
                     if (!item || typeof (item) == 'undefined') {
                         continue;
                     }
-                    let added = cRow.add(item);
+                    var added = cRow.add(item);
                     if (!added) {
                         tmpTasks.push(item);
                     }
                     else {
                         if (cRow.getTasksCount() > 1) {
-                            let prevCT = cRow.getByIndex(cRow.getTasksCount() - 2); // -2 because we have previous element and current element which one we just added
+                            var prevCT = cRow.getByIndex(cRow.getTasksCount() - 2); // -2 because we have previous element and current element which one we just added
                             prevCT.setNextRowTaskId(item.getId());
                             item.setPrevRowTaskId(prevCT.getId());
-                            console.log(tmpTasks.length, prevCT, item);
                         }
                     }
                 }
@@ -11226,8 +11359,7 @@ class CalendarTaskCollection {
                     break;
                 }
                 else {
-                    acTasks = [].slice.call(tmpTasks); // ES5
-                    // acTasks = Array.from(tmpTasks); // ES6 only
+                    acTasks = tmpTasks;
                     tmpTasks = [];
                 }
                 if (i == 20) {
@@ -11235,81 +11367,83 @@ class CalendarTaskCollection {
                     break;
                 }
             }
-        });
-    }
-    makeKey(dataTask) {
+        }
+    };
+    CalendarTaskCollection.prototype.makeKey = function (dataTask) {
         return dataTask.getDataRow().getUser() + '_' + dataTask.getDataRow().getType();
-    }
-}
-class CalendarRow {
-    constructor() {
+    };
+    return CalendarTaskCollection;
+}());
+var CalendarRow = /** @class */ (function () {
+    function CalendarRow() {
         this._user = '';
         this._type = '';
         this._tasks = [];
     }
-    getUser() {
+    CalendarRow.prototype.getUser = function () {
         return this._user;
-    }
-    getType() {
+    };
+    CalendarRow.prototype.getType = function () {
         return this._type;
-    }
-    add(task) {
+    };
+    CalendarRow.prototype.add = function (task) {
         this._user = task.getDataRow().getUser();
         this._type = task.getDataRow().getType();
         if (this._tasks.length > 0) {
-            let lastTask = this._tasks[this._tasks.length - 1];
-            let diff = lastTask.getEndDate().diff(task.getStartDate());
+            var lastTask = this._tasks[this._tasks.length - 1];
+            var diff = lastTask.getEndDate().diff(task.getStartDate());
             if (diff <= 1 || lastTask.getEndDate().toDate() > task.getStartDate().toDate()) {
                 return false;
             }
         }
         this._tasks.push(task);
         return true;
-    }
-    getTaskOnDate(date) {
+    };
+    CalendarRow.prototype.getTaskOnDate = function (date) {
         if (this._tasks.length > 0) {
-            for (let i = 0; i < this._tasks.length; i++) {
-                let task = this._tasks[i];
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
                 if (task.isApplyedToDate(date)) {
                     return task;
                 }
             }
         }
         return null;
-    }
-    getTasksCount() {
+    };
+    CalendarRow.prototype.getTasksCount = function () {
         return this._tasks.length;
-    }
-    getByIndex(idx) {
+    };
+    CalendarRow.prototype.getByIndex = function (idx) {
         if (idx >= this._tasks.length || idx < 0) {
             return null;
         }
         return this._tasks[idx];
-    }
-    getNextTask(currentTask) {
-        let currentLast = currentTask.getEndDate();
+    };
+    CalendarRow.prototype.getNextTask = function (currentTask) {
+        var currentLast = currentTask.getEndDate();
         if (this._tasks.length > 0) {
-            for (let i = 0; i < this._tasks.length; i++) {
-                let task = this._tasks[i];
-                let taskStart = task.getStartDate();
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
+                var taskStart = task.getStartDate();
                 if (currentLast.isLT(taskStart, 'y-m-d')) {
                     return task;
                 }
             }
         }
         return null;
-    }
-    getSpaseToNextTask(mmt) {
-        let currentTask = this.getTaskOnDate(mmt);
+    };
+    CalendarRow.prototype.getSpaseToNextTask = function (mmt) {
+        var currentTask = this.getTaskOnDate(mmt);
         if (!currentTask) {
             return 365;
         }
-        let nextTask = this.getNextTask(currentTask);
+        var nextTask = this.getNextTask(currentTask);
         if (!nextTask) {
             return 365;
         }
         return mmt.diff(nextTask.getStartDate()) - 1;
-    }
-}
-let app = new Calendar('#calendar');
+    };
+    return CalendarRow;
+}());
+var app = new Calendar('#calendar');
 app.setData(data).render();
