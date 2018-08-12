@@ -10195,7 +10195,6 @@ class Calendar {
     public setData(data: any): Calendar {
         this._taskCollection = new CalendarTaskCollection();
         this._taskCollection.loadArray(data);
-        this = 1;
         return this;
     }
 
@@ -10651,7 +10650,7 @@ class CalendarHtml {
 
         // FIXME: Use mmt instad new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate())
         if ((new Moment())
-                .isSame(new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate()), 'YYYYMMDD')) {
+            .isSame(new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate()), 'YYYYMMDD')) {
             day.classList.add('now');
         }
         return day;
@@ -11632,6 +11631,7 @@ class CalendarTaskCollection {
     }
 
     private group() {
+        // let _map = new Map(); // #ES6 only
         let _map = new Map();
         for (let j = 0; j < this._dataTasks.length; j++) {
             let cTask = this._dataTasks[j];
@@ -11653,9 +11653,12 @@ class CalendarTaskCollection {
         }
 
         _map.forEach((value: any, key: any) => {
-            let aMap = Array.from(value, (v: any, k: any) => {
-                return v[1] as CalendarTask;
-            });
+            // let aMap = Array.from(value, (v: any, k: any) => {   // #ES6 only
+            //     return v[1] as CalendarTask;                     // #ES6 only
+            // });                                                  // #ES6 only
+            let aMap = [].slice.call(value);
+            console.log(aMap);
+
             aMap.sort((a: CalendarTask, b: CalendarTask) => {
                 let aDate: IMoment = a.getDataRow().getStart();
                 let bDate: IMoment = b.getDataRow().getStart();
@@ -11712,7 +11715,8 @@ class CalendarTaskCollection {
                 if (tmpTasks.length == 0) {
                     break;
                 } else {
-                    acTasks = Array.from(tmpTasks);
+                    acTasks = [].slice.call(tmpTasks); // ES5
+                    // acTasks = Array.from(tmpTasks); // ES6 only
                     tmpTasks = [];
                 }
                 if (i == 20) {

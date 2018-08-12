@@ -9933,6 +9933,10 @@ class CalendarDataRow {
             }
         }
     }
+    /**
+     * Return row ID
+     * @returns {TDataId}
+     */
     getId() {
         return this._id;
     }
@@ -9998,8 +10002,23 @@ class Calendar {
      * Class constructor
      */
     constructor(selector) {
+        /**
+         * Collection of tasks
+         * @type {any}
+         * @private
+         */
         this._taskCollection = null;
+        /**
+         * HTML page font size
+         * @type {number}
+         * @private
+         */
         this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('html')).getPropertyValue('font-size'));
+        /**
+         * HTML page font family
+         * @type {string}
+         * @private
+         */
         this._htmlFontFamily = window.getComputedStyle(document.querySelector('html')).getPropertyValue('font-family');
         /**
          * First date of month
@@ -10025,9 +10044,8 @@ class Calendar {
          * @private
          */
         this._currentYear = new Moment().getYear();
-        // this._div = document.querySelector(this._config.htmlSelector);
+        // Find container for calendar
         this._div = document.querySelector(selector);
-        this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('html')).getPropertyValue('font-size'));
     }
     /**
      * Return start date for calendar
@@ -10043,11 +10061,19 @@ class Calendar {
     static getEndPeriod() {
         return new Moment().endOf('month').add(4, 'days');
     }
+    /**
+     * Loading data to calendar
+     * @param data
+     * @returns {Calendar}
+     */
     setData(data) {
         this._taskCollection = new CalendarTaskCollection();
         this._taskCollection.loadArray(data);
         return this;
     }
+    /**
+     * Rerender calendar
+     */
     refresh() {
         this.render();
     }
@@ -10057,10 +10083,14 @@ class Calendar {
     render() {
         // Make header
         let row;
+        // Get start of calendars period
         let startMmt = Calendar.getStartPeriod();
+        // Get end of calendars period
         let endMmt = Calendar.getEndPeriod();
+        // Calculate count of days in period
         let diffDays = endMmt.diff(startMmt) + 1;
         let label;
+        // Create wrapper for calendar
         let cWrapper = document.createElement('div');
         cWrapper.classList.add('task-calendar');
         // Create month names
@@ -10084,6 +10114,7 @@ class Calendar {
         // Create period dates
         this.generateDateRange(row, startMmt, diffDays);
         cWrapper.appendChild(row);
+        // Check if data loaded
         if (!this._taskCollection) {
             console.log('Data not loaded. Use method "setData" before render');
             // throw new Exep
@@ -10118,14 +10149,19 @@ class Calendar {
                     let mmt = startMmt.clone().add(i);
                     // Create cell with simple day
                     let day = CalendarHtml.createDay(mmt);
+                    // Adding CSS classes and check if it first day of month
                     let firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
+                    // Check if it first work day
                     let firstWorkDayOfMonth = mmt.isFirstWorkDayOfMonth();
+                    // Get task on current date
                     let task = cRow.getTaskOnDate(mmt);
                     if (task) {
+                        // Get calendar task date
                         let calDate = task.getCTDate(mmt);
                         if (calDate) {
                             // Render date from data
                             calDate.render(day, task.getId());
+                            // Create local vars
                             let idx = task.getLastDateIndex();
                             let duration = task.getDataRow().getDuration();
                             let firstDateOfMonth = mmt.startOf('month');
@@ -10141,12 +10177,15 @@ class Calendar {
                             let textWidth = this.getLabelLengthInDays(task.getDataRow().getLabel());
                             let prevRowTaskId = task.getPrevRowTaskId();
                             let nextRowTaskId = task.getNextRowTaskId();
+                            let isStartPeriod = calDate.getMoment().isSame(Calendar.getStartPeriod(), 'y-m-d');
+                            // Create corresponding values in dataset
                             day.dataset.taskDuration = String(duration);
                             day.dataset.taskTillEndOfMonth = String(tillEndOfMonth);
                             day.dataset.taskTillStartOfMonth = String(tillStartOfMonth);
                             day.dataset.taskTillEndOfPeriod = String(tillEndOfPeriod);
                             day.dataset.taskTillStartOfPeriod = String(tillStartOfPeriod);
                             day.dataset.taskSpaceToNextTask = String(spaceToNextTask);
+                            day.dataset.daysInTask = String(daysInTask);
                             if (prevRowTaskId) {
                                 day.dataset.prevRowTaskId = String(prevRowTaskId);
                             }
@@ -10157,18 +10196,29 @@ class Calendar {
                                 day.dataset.taskDaysLeft = String(daysLeft);
                                 day.dataset.taskDaysSpent = String(daysSpent);
                             }
-                            let isStartPeriod = calDate.getMoment().isSame(Calendar.getStartPeriod(), 'y-m-d');
-                            // Add label to first day of task or to first day of period,
+                            // Add label to first day of task or to first day of period/month,
                             // if task start is outside of it
-                            // if (calDate.isFirst || (!calDate.isFirst && firstDayOfMonth) || (!calDate.isFirst && isStartPeriod)) {
                             if (calDate.isFirst || (!calDate.isFirst && firstWorkDayOfMonth) || (!calDate.isFirst && isStartPeriod)) {
-                                let min = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1]);
-                                let labelLength = this.getMinNumber([min, textWidth]);
-                                let labelEndDate = mmt.clone().add(labelLength - 1);
+                                // Add CSS class to task whitch contain task label
                                 day.classList.add('labeled');
+                                // Lets calculate label length
+                                // Label should not cross other label and should not be outside month or period
+                                // To check it wi get minimum between:
+                                // * spaceToNextTask        days count between current and next tasks start dates
+                                // * tillEndOfMonth + 1     +1 because we should count current day too
+                                // * tillEndOfPeriod + 1    +1 because we should count current day too
+                                // * textWidth              label width
+                                // let min: number = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1]);
+                                // let labelLength: number = this.getMinNumber([min, textWidth]);
+                                let labelLength = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
+                                // Get date where last label symbol is
+                                let labelEndDate = mmt.clone().add(labelLength - 1);
+                                // Create task label HTML element
                                 let span = CalendarHtml.createTaskText(task.getDataRow().getLabel());
+                                // Add some CSS classes
                                 span.classList.add('task-label');
                                 span.classList.add('task-label-length-' + String(labelLength));
+                                // Add extra CSS class to label element, which text is longer that days count till end of month/period or next task start date
                                 if (textWidth > labelLength) {
                                     if (task.isApplyedToDate(labelEndDate)) {
                                         span.classList.add('end-task');
@@ -10180,17 +10230,11 @@ class Calendar {
                                         span.classList.add('end-day');
                                     }
                                 }
-                                // span.dataset.labelEndAt = String(labelEndDate.format('y-m-d'));
-                                // span.dataset.spaceToNextTask = String(spaceToNextTask);
-                                // span.dataset.textWidth = String(textWidth);
-                                // span.dataset.tillEndOfMonth = String(tillEndOfMonth);
-                                // span.dataset.tillEndOfPeriod = String(tillEndOfPeriod);
-                                // span.dataset.daysInTask = String(daysInTask);
-                                // span.dataset.contentSpanLength = String(labelLength);
                                 day.appendChild(span);
                             }
                         }
                     }
+                    // If it first day of month, add gap between monthes
                     if (firstDayOfMonth && i != 0) {
                         let monthBreak = CalendarHtml.createCell();
                         monthBreak.classList.add('month-break');
@@ -10204,14 +10248,32 @@ class Calendar {
         this._div.appendChild(cWrapper);
         console.log('rendered');
     }
+    /**
+     * Return minimum from input numbers array
+     * @param {Array<number>} inputs
+     * @returns {number}
+     */
     getMinNumber(inputs) {
         return this.getMinMaxNumber(inputs, true);
     }
+    /**
+     * Return maximum from input numbers array
+     * @param {Array<number>} inputs
+     * @returns {number}
+     */
     getMaxNumber(inputs) {
         return this.getMinMaxNumber(inputs);
     }
+    /**
+     * Return minimum/maximum from input numbers array
+     * @param {Array<number>} inputs
+     * @param {boolean} min
+     * @returns {number}
+     */
     getMinMaxNumber(inputs, min = false) {
-        inputs.sort((a, b) => { return a - b; });
+        inputs.sort((a, b) => {
+            return a - b;
+        });
         if (min) {
             return inputs.shift();
         }
@@ -10219,8 +10281,17 @@ class Calendar {
             return inputs.pop();
         }
     }
+    /**
+     * Generate date range
+     * @param {HTMLElement} row
+     * @param {IMoment} startMmt
+     * @param {number} diffDays
+     * @param {boolean} asCell
+     */
     generateDateRange(row, startMmt, diffDays, asCell = false) {
+        // Loop for all days in period
         for (let i = 0; i < diffDays; i++) {
+            // Create date on each day
             let mmt = startMmt.clone().add(i);
             let day;
             if (asCell) {
@@ -10232,6 +10303,7 @@ class Calendar {
                 day.appendChild(label);
             }
             let firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
+            // If it first day of month add gap
             if (firstDayOfMonth && i != 0) {
                 let monthBreak = CalendarHtml.createCell();
                 monthBreak.classList.add('month-break');
@@ -10240,6 +10312,14 @@ class Calendar {
             row.appendChild(day);
         }
     }
+    /**
+     * Add data to HTML day
+     * @param {HTMLElement} day
+     * @param {IMoment} mmt
+     * @param {number} i
+     * @param {number} diffDays
+     * @returns {boolean}
+     */
     addDayData(day, mmt, i, diffDays) {
         // Create moment of first and last date of month
         let firstDayOfMonth = mmt.isFirstDayOfMonth();
@@ -10252,23 +10332,38 @@ class Calendar {
             day.classList.add('cell-span-' + String(len));
             day.dataset.monthLength = String(len);
         }
+        // If it is end of period
         if (i == diffDays - 1) {
             day.classList.add('period-end');
         }
+        // It it is first day of month
         if (firstDayOfMonth) {
             day.classList.add('month-start');
         }
+        // If it is last day of month
         if (lastDayOfMonth) {
             day.classList.add('month-end');
         }
         return firstDayOfMonth;
     }
+    /**
+     * Calculate and return label length
+     * @param {string} text
+     * @returns {number}
+     */
     getLabelLengthInDays(text) {
+        // Create canvas
         let canvas = document.createElement('canvas');
+        // Get 2D context
         let ctx = canvas.getContext('2d');
+        // Set font size and font family
         ctx.font = this._htmlFontSize + 'px ' + this._htmlFontFamily;
+        // Get text length in pixels
         let w = ctx.measureText(text).width;
+        // FIXME: 1.7 is $day-cell-width in app.scss. Move it to calendar settings
+        // Calculate text length in calendar days
         w = w / (this._htmlFontSize * 1.7);
+        // Round up
         w = Math.ceil(w);
         return w;
     }
@@ -10312,7 +10407,10 @@ class CalendarHtml {
         return document.createTextNode(label);
     }
     /**
-     * Create DIV tag with CSS classes
+     * Create DIV tag with CSS classes:
+     * - row
+     * - [row-header]
+     *
      * @param {boolean} bHeader
      * @returns {HTMLElement}
      */
@@ -10326,6 +10424,15 @@ class CalendarHtml {
     }
     /**
      * Create DIV tag for calendar day cell with CSS classes using moment
+     * Add CSS classes:
+     * - col
+     * - day
+     * - [day-off]
+     * - [now]
+     *
+     * Fill datasets:
+     * - date
+     *
      * @param {IMoment} mmt
      * @returns {HTMLElement}
      */
@@ -10337,12 +10444,19 @@ class CalendarHtml {
         if (mmt.isDayoff()) {
             day.classList.add('day-off');
         }
+        // FIXME: Use mmt instad new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate())
         if ((new Moment())
             .isSame(new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate()), 'YYYYMMDD')) {
             day.classList.add('now');
         }
         return day;
     }
+    /**
+     * Create HTML DIV element with CSS classes:
+     * - col
+     * - day
+     * @returns {HTMLElement}
+     */
     static createCell() {
         let div = document.createElement('div');
         div.classList.add('col');
@@ -10362,6 +10476,10 @@ class CalendarHtml {
     }
     /**
      * Create DIV tag with CSS classes for cell with user name and task type values
+     * Add CSS classes:
+     * - col
+     * - group
+     *
      * @param {string} label
      * @returns {HTMLElement}
      */
@@ -10376,12 +10494,29 @@ class CalendarHtml {
         return div;
     }
 }
+// TODO: Create default mask constant
+// TODO: Create named list with popular masks
 /**
  * Moment
  */
 class Moment {
+    /**
+     * Class constructor
+     *
+     * @param {string | Date | number | IMoment} sDate
+     * @param {number} month
+     * @param {number} date
+     * @param {number} hours
+     * @param {number} minutes
+     * @param {number} seconds
+     */
     constructor(sDate = '', month, date, hours, minutes, seconds) {
         this.sDate = sDate;
+        /**
+         * Date storage
+         * @type {Date}
+         * @private
+         */
         this._oDate = new Date();
         if (this.sDate == '' || this.sDate == 'undefined' || this.sDate == null || this.sDate == 'function') {
             this._oDate = new Date(Date.now());
@@ -10419,28 +10554,90 @@ class Moment {
             }
         }
     }
+    /**
+     * Return year
+     * @returns {number}
+     */
     getYear() {
         return this._oDate.getFullYear();
     }
+    /**
+     * Return number of month starting at 0
+     * @returns {number}
+     */
     getMonth() {
         return this._oDate.getMonth();
     }
+    /**
+     * Return date
+     * @returns {number}
+     */
     getDate() {
         return this._oDate.getDate();
     }
+    /**
+     * Return number of day of week
+     * @returns {number}
+     */
     getDay() {
         return this._oDate.getDay();
     }
+    /**
+     * Return TRUE if current day is day off
+     * @returns {boolean}
+     */
     isDayoff() {
         return this.getDay() == 0 || this.getDay() == 6;
     }
+    /**
+     * Make a clone
+     * @returns {IMoment}
+     */
     clone() {
         return new Moment(this.sDate);
     }
+    /**
+     * Set milliseconds
+     * @returns {number}
+     */
     setMilliseconds() {
         return this._oDate.getMilliseconds();
     }
-    // TODO make SUBSTRACT method
+    /**
+     * Substruct count of units to date
+     * Available measures are:
+     * - days
+     * - weeks
+     * - months
+     * - years
+     * - hours
+     * - minutes
+     * - seconds
+     * - miliseconds
+     *
+     * @param {number} count
+     * @param {string} measure
+     * @returns {IMoment}
+     */
+    subtract(count, measure = 'days') {
+        return this.add(-count, measure);
+    }
+    /**
+     * Add count of units to date
+     * Available measures are:
+     * - days
+     * - weeks
+     * - months
+     * - years
+     * - hours
+     * - minutes
+     * - seconds
+     * - miliseconds
+     *
+     * @param {number} count
+     * @param {string} measure
+     * @returns {IMoment}
+     */
     add(count, measure = 'days') {
         if (!count)
             return this;
@@ -10473,13 +10670,33 @@ class Moment {
         this.sDate = this.format('y-m-d h:i:s');
         return this;
     }
-    pad(num, length = 2) {
+    /**
+     * Convert number to string of defined length with leading/trailing symbols
+     *
+     * @param {number} num
+     * @param {number} length
+     * @param {string} fill
+     * @param {boolean} trailing
+     * @returns {string}
+     */
+    pad(num, length = 2, fill = '0', trailing = false) {
         let sNum = String(num);
+        let sym = fill[0];
         for (let i = 0; i < length - sNum.length; i++) {
-            sNum = '0' + sNum;
+            if (trailing) {
+                sNum += sym;
+            }
+            else {
+                sNum = sym + sNum;
+            }
         }
         return sNum;
     }
+    /**
+     * Convert date to string using mask
+     * @param {string} mask
+     * @returns {string}
+     */
     format(mask) {
         // TODO: extend format RegExp
         return mask.replace(/y{1,4}/gi, this._oDate.getFullYear().toString())
@@ -10489,27 +10706,89 @@ class Moment {
             .replace(/i{1,2}/gi, this.pad(this._oDate.getMinutes()))
             .replace(/s{1,2}/gi, this.pad(this._oDate.getSeconds()));
     }
+    /**
+     * Return TRUE if moment is equal by mask
+     * By default mask is 'YYYY-MM-DD HH:ii:SS'
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isSame(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         let current = this.format(mask);
         let compare = date.format(mask);
         return current == compare;
     }
+    /**
+     * Return TRUE if current moment is Great or Equal than input moment
+     * Default mask is YYYY-MM-DD HH:ii:SS
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isGE(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         return this.compare(date, mask, '>=');
     }
+    /**
+     * Return TRUE if current moment is Less or Equal than input moment
+     * Default mask is YYYY-MM-DD HH:ii:SS
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isLE(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         return this.compare(date, mask, '<=');
     }
+    /**
+     * Return TRUE if current moment is Greater than input moment
+     * Default mask is YYYY-MM-DD HH:ii:SS
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isGT(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         return this.compare(date, mask, '>');
     }
+    /**
+     * Return TRUE if current moment is Lower than input moment
+     * Default mask is YYYY-MM-DD HH:ii:SS
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isLT(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         return this.compare(date, mask, '<');
     }
     // FIXME: make union with isSame method
+    /**
+     * Return TRUE if current moment is Equal to input moment
+     * Default mask is YYYY-MM-DD HH:ii:SS
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @returns {boolean}
+     */
     isEQ(date, mask = 'YYYY-MM-DD HH:ii:SS') {
         return this.compare(date, mask, '=');
     }
+    /**
+     * Compare current date with input date using sign
+     * Available signs are:
+     * - [>]
+     * - [<]
+     * - [>=]
+     * - [<=]
+     * - [=] as default
+     *
+     * @param {IMoment} date
+     * @param {string} mask
+     * @param {string} sign
+     * @returns {boolean}
+     */
     compare(date, mask, sign = '=') {
         let current = this.format(mask);
         let compare = date.format(mask);
@@ -10529,6 +10808,15 @@ class Moment {
         }
         return currentDate == compareDate;
     }
+    /**
+     * Return moment which equal to start of period
+     * Available units are:
+     * - month
+     * - workmonth (first working day of month)
+     *
+     * @param {string} measure
+     * @returns {IMoment}
+     */
     startOf(measure) {
         let res = new Moment();
         switch (measure) {
@@ -10551,6 +10839,14 @@ class Moment {
         return res;
     }
     // TODO: make extra measurement
+    /**
+     * Return moment which equal to end of period
+     * Available measure are:
+     * - month
+     *
+     * @param {string} measure
+     * @returns {IMoment}
+     */
     endOf(measure) {
         let res = new Moment();
         switch (measure) {
@@ -10561,13 +10857,33 @@ class Moment {
         return res;
     }
     // FIXME: add date format mask
+    /**
+     * Return TRUE if moment between two dates
+     *
+     * @param {IMoment} from
+     * @param {IMoment} to
+     * @returns {boolean}
+     */
     isBetween(from, to) {
         return (this._oDate <= to.toDate() && this._oDate >= from.toDate());
     }
+    /**
+     * Return Date object
+     * @returns {Date}
+     */
     toDate() {
         return this._oDate;
     }
     // TODO: make extra measurement
+    /**
+     * Return difference between current moment and given moment in units of measure
+     * Units of measure are:
+     * - [days] by default
+     *
+     * @param {IMoment} date
+     * @param {string} measure
+     * @returns {number}
+     */
     diff(date, measure = 'days') {
         let timeValues = {
             ms2s: 1000,
@@ -10584,19 +10900,34 @@ class Moment {
         }
         return Math.ceil(timeDiff / devider);
     }
+    /**
+     * Return TRUE if it is last day of month
+     * @returns {boolean}
+     */
     isLastDayOfMonth() {
         let date = this.clone().endOf('month');
         return this.isSame(date, 'y-m-d');
     }
+    /**
+     * Return TRUE if it is first day of month
+     * @returns {boolean}
+     */
     isFirstDayOfMonth() {
         let date = this.clone().startOf('month');
         return this.isSame(date, 'y-m-d');
     }
+    /**
+     * Return TRUE if it is first day of month which is not day off
+     * @returns {boolean}
+     */
     isFirstWorkDayOfMonth() {
         let date = this.clone().startOf('workmonth');
         return this.isSame(date, 'y-m-d');
     }
 }
+/**
+ *
+ */
 class CalendarTaskDate {
     constructor(_date) {
         this._date = _date;
@@ -10612,8 +10943,12 @@ class CalendarTaskDate {
         day.classList.add('task');
         day.dataset.taskId = String(taskId);
         day.classList.add('task-' + taskId);
-        day.addEventListener('mouseenter', (event) => { this.mouseEvent(event, 'mouseenter'); }, false);
-        day.addEventListener('mouseleave', (event) => { this.mouseEvent(event, 'mouseleave'); }, false);
+        day.addEventListener('mouseenter', (event) => {
+            this.mouseEvent(event, 'mouseenter');
+        }, false);
+        day.addEventListener('mouseleave', (event) => {
+            this.mouseEvent(event, 'mouseleave');
+        }, false);
         if (this.isFirst) {
             day.classList.add('task-start');
         }
@@ -10629,7 +10964,6 @@ class CalendarTaskDate {
     }
     mouseEvent(event, eventName) {
         // TODO: find NEXT and PREV tasks in the same row
-        // TODO: find NEXT and PREV tasks in user's block
         event.preventDefault();
         let trg = event.target;
         let dta = trg.dataset.taskId;
@@ -10812,6 +11146,7 @@ class CalendarTaskCollection {
         return null;
     }
     group() {
+        // let _map = new Map(); // #ES6 only
         let _map = new Map();
         for (let j = 0; j < this._dataTasks.length; j++) {
             let cTask = this._dataTasks[j];
@@ -10833,9 +11168,11 @@ class CalendarTaskCollection {
             }
         }
         _map.forEach((value, key) => {
-            let aMap = Array.from(value, (v, k) => {
-                return v[1];
-            });
+            // let aMap = Array.from(value, (v: any, k: any) => {   // #ES6 only
+            //     return v[1] as CalendarTask;                     // #ES6 only
+            // });                                                  // #ES6 only
+            let aMap = [].slice.call(value);
+            console.log(aMap);
             aMap.sort((a, b) => {
                 let aDate = a.getDataRow().getStart();
                 let bDate = b.getDataRow().getStart();
@@ -10889,7 +11226,8 @@ class CalendarTaskCollection {
                     break;
                 }
                 else {
-                    acTasks = Array.from(tmpTasks);
+                    acTasks = [].slice.call(tmpTasks); // ES5
+                    // acTasks = Array.from(tmpTasks); // ES6 only
                     tmpTasks = [];
                 }
                 if (i == 20) {
