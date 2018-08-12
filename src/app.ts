@@ -11582,7 +11582,6 @@ class CalendarTask {
 
 class KeyValuePair {
     public constructor(private key: any, private value: any) {
-
     }
 
     public getKey(): any {
