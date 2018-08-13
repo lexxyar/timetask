@@ -2,14 +2,16 @@
 var Calendar = (function () {
     function Calendar(settings) {
         this._taskCollection = null;
-        this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('html')).getPropertyValue('font-size'));
-        this._htmlFontFamily = window.getComputedStyle(document.querySelector('html')).getPropertyValue('font-family');
+        this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-size'));
+        this._htmlFontFamily = window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-family');
         this._monthStart = new Moment().startOf('month').getDate();
         this._monthEnd = new Moment().endOf('month').getDate();
         this._currentMonth = new Moment().getMonth();
         this._currentYear = new Moment().getYear();
         this._renderStartTime = new Moment();
         this._renderEndTime = new Moment();
+        this._maxUserName = 0;
+        this._maxTaskType = 0;
         this._div = document.querySelector(settings.containerId);
         this.loadUrl();
     }
@@ -62,6 +64,51 @@ var Calendar = (function () {
     Calendar.prototype.refresh = function () {
         this.render();
     };
+    Calendar.prototype.calculateGroupLabelMaxWidth = function () {
+        var usersName = new KeyValuePairCollection();
+        var tasksType = new KeyValuePairCollection();
+        usersName.set('User', this.getTextLengthInPixels('User'));
+        tasksType.set('Task type', this.getTextLengthInPixels('Task type'));
+        if (this._taskCollection == null) {
+            return;
+        }
+        for (var j = 0; j < this._taskCollection.getSize(); j++) {
+            var cRow = this._taskCollection.getByIndex(j);
+            if (!cRow) {
+                continue;
+            }
+            usersName.set(cRow.getUser(), Math.ceil(this.getTextLengthInPixels(cRow.getUser())));
+            tasksType.set(cRow.getType(), Math.ceil(this.getTextLengthInPixels(cRow.getType())));
+        }
+        usersName.sort(function (a, b) {
+            var aVal = a.getValue();
+            var bVal = b.getValue();
+            if (aVal < bVal) {
+                return -1;
+            }
+            else if (aVal > bVal) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        });
+        tasksType.sort(function (a, b) {
+            var aVal = a.getValue();
+            var bVal = b.getValue();
+            if (aVal < bVal) {
+                return -1;
+            }
+            else if (aVal > bVal) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        });
+        this._maxUserName = usersName.getValues().pop();
+        this._maxTaskType = tasksType.getValues().pop();
+    };
     Calendar.prototype.render = function () {
         this._renderStartTime = new Moment();
         var row;
@@ -69,6 +116,10 @@ var Calendar = (function () {
         var endMmt = Calendar.getEndPeriod();
         var diffDays = endMmt.diff(startMmt) + 1;
         var label;
+        var sett = CalendarSettings.getInstance();
+        if (sett.autoWidthGroup) {
+            this.calculateGroupLabelMaxWidth();
+        }
         var cWrapper = document.createElement('div');
         cWrapper.classList.add('task-calendar');
         row = CalendarHtml.createRow(true);
@@ -106,8 +157,16 @@ var Calendar = (function () {
                 }
                 prevUser = cRow.getUser();
                 var label_1 = CalendarHtml.createRowGroup(cRow.getUser());
+                if (sett.autoWidthGroup) {
+                    label_1.classList.add('value-width-auto');
+                    label_1.classList.add('value-width-' + String(this._maxUserName));
+                }
                 row_1.appendChild(label_1);
                 label_1 = CalendarHtml.createRowGroup(cRow.getType());
+                if (sett.autoWidthGroup) {
+                    label_1.classList.add('value-width-auto');
+                    label_1.classList.add('value-width-' + String(this._maxTaskType));
+                }
                 row_1.appendChild(label_1);
                 for (var i = 0; i < diffDays; i++) {
                     var mmt = startMmt.clone().add(i);
@@ -123,7 +182,7 @@ var Calendar = (function () {
                             var duration = task.getDataRow().getDuration();
                             var firstDateOfMonth = mmt.startOf('month');
                             var lastDateOfMonth = mmt.endOf('month');
-                            var tillEndOfMonth = lastDateOfMonth.diff(mmt);
+                            var tillEndOfMonth = lastDateOfMonth.diff(mmt, 'days', 'y-m-d');
                             var tillStartOfMonth = firstDateOfMonth.diff(mmt);
                             var tillEndOfPeriod = endMmt.diff(mmt);
                             var tillStartOfPeriod = startMmt.diff(mmt);
@@ -256,11 +315,15 @@ var Calendar = (function () {
         }
         return firstDayOfMonth;
     };
-    Calendar.prototype.getLabelLengthInDays = function (text) {
+    Calendar.prototype.getTextLengthInPixels = function (text) {
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
         ctx.font = this._htmlFontSize + 'px ' + this._htmlFontFamily;
         var w = ctx.measureText(text).width;
+        return w;
+    };
+    Calendar.prototype.getLabelLengthInDays = function (text) {
+        var w = this.getTextLengthInPixels(text);
         w = w / (this._htmlFontSize * 1.7);
         w = Math.ceil(w);
         return w;
@@ -458,6 +521,7 @@ var CalendarSettings = (function () {
         this.customDateEnd = new Moment();
         this.leftShiftDays = 0;
         this.rightShiftDays = 0;
+        this.autoWidthGroup = false;
     }
     CalendarSettings.getInstance = function () {
         if (this._instance == null) {
@@ -504,14 +568,6 @@ var CalendarTask = (function () {
             var nextDate = this._dataRow.getStart().clone();
             nextDate.add(i, 'days');
             var calDate = new CalendarTaskDate(nextDate);
-            calDate.isFirst = this.isFirst();
-            if (!calDate.isFirst) {
-                var prevDate_1 = this._dates[this._dates.length - 1];
-                var tmpDate = prevDate_1.getMoment().clone().add(1, 'days');
-                calDate.hasPrev = tmpDate.isSame(calDate.getMoment(), 'YYYYMMDD');
-                prevDate_1.hasNext = tmpDate.isSame(calDate.getMoment(), 'YYYYMMDD');
-                this._dates[this._dates.length - 1] = prevDate_1;
-            }
             if (calDate.getMoment().isDayoff()) {
                 if (dayoffCnt > 0) {
                     if (this._dataRow.getDayoffdate()) {
@@ -539,8 +595,29 @@ var CalendarTask = (function () {
                 this._dates.push(calDate);
             }
         }
-        var prevDate = this._dates[this._dates.length - 1];
-        prevDate.isLast = true;
+        for (var i = 0; i < this._dates.length; i++) {
+            var calDate = this._dates[i];
+            calDate.isFirst = false;
+            calDate.hasPrev = false;
+            calDate.hasNext = false;
+            calDate.isLast = false;
+            if (i == 0) {
+                calDate.isFirst = true;
+            }
+            if (i == this._dates.length - 1) {
+                calDate.isLast = true;
+            }
+            if (i > 0 && i < this._dates.length - 1) {
+                calDate.hasPrev = true;
+                calDate.hasNext = true;
+            }
+            if (i === 0 && i !== this._dates.length - 1) {
+                calDate.hasNext = true;
+            }
+            if (i !== 0 && i === this._dates.length - 1) {
+                calDate.hasPrev = true;
+            }
+        }
     };
     CalendarTask.prototype.isFirst = function () {
         return this._dates.length == 0;
@@ -1133,15 +1210,18 @@ var Moment = (function () {
     Moment.prototype.toDate = function () {
         return this._oDate;
     };
-    Moment.prototype.diff = function (date, measure) {
+    Moment.prototype.diff = function (date, measure, mask) {
         if (measure === void 0) { measure = 'days'; }
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         var timeValues = {
             ms2s: 1000,
             s2i: 60,
             i2h: 60,
             h2d: 24
         };
-        var timeDiff = Math.abs(this._oDate.getTime() - date.toDate().getTime());
+        var begda = new Moment(this.format(mask));
+        var endda = new Moment(date.format(mask));
+        var timeDiff = Math.abs(endda.toDate().getTime() - begda.toDate().getTime());
         var devider = 1;
         switch (measure) {
             case 'days':
@@ -1167,7 +1247,8 @@ var Moment = (function () {
 var sett = CalendarSettings.getInstance();
 sett.containerId = '#calendar';
 sett.dataUrl = 'http://dummy.lexxsoft.ru';
-sett.timeRange = TimeRange.Month;
-sett.leftShiftDays = 2;
-sett.rightShiftDays = 4;
+sett.timeRange = TimeRange.TimeLine;
+sett.leftShiftDays = 14;
+sett.rightShiftDays = 14;
+sett.autoWidthGroup = true;
 var app = new Calendar(sett);

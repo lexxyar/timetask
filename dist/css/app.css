@@ -41,6 +41,10 @@
         max-height: 1.6rem;
         height: 1.6rem;
         line-height: 1.6rem; }
+        .task-calendar .row .col.group.value-width-auto.value-width-181 {
+          width: 181px;
+          min-width: 181px;
+          max-width: 181px; }
       .task-calendar .row .col.day {
         min-width: 1.7rem;
         max-width: 1.7rem;
