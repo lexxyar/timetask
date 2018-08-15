@@ -1,4 +1,643 @@
 "use strict";
+var TimeRange;
+(function (TimeRange) {
+    TimeRange["Year"] = "year";
+    TimeRange["Quarter"] = "quarter";
+    TimeRange["Month"] = "month";
+    TimeRange["Week"] = "week";
+    TimeRange[TimeRange["TimeLine"] = 0] = "TimeLine";
+})(TimeRange || (TimeRange = {}));
+;
+var CalendarRangeType;
+(function (CalendarRangeType) {
+    CalendarRangeType[CalendarRangeType["CurrentDate"] = 0] = "CurrentDate";
+    CalendarRangeType[CalendarRangeType["Custom"] = 1] = "Custom";
+})(CalendarRangeType || (CalendarRangeType = {}));
+var CalendarSettings = (function () {
+    function CalendarSettings() {
+        this.dataUrl = '';
+        this.requestMethod = 'GET';
+        this.containerId = '';
+        this.rangeType = CalendarRangeType.CurrentDate;
+        this.timeRange = TimeRange.Month;
+        this.customDateStart = new Moment();
+        this.customDateEnd = new Moment();
+        this.leftShiftDays = 0;
+        this.rightShiftDays = 0;
+        this.autoWidthGroup = false;
+        this.holidaysDate = [];
+        this.extraworkdaysDate = [];
+    }
+    CalendarSettings.getInstance = function () {
+        if (this._instance == null) {
+            this._instance = new this();
+        }
+        return this._instance;
+    };
+    CalendarSettings._instance = null;
+    return CalendarSettings;
+}());
+var KeyValuePairCollection = (function () {
+    function KeyValuePairCollection() {
+        this._data = [];
+    }
+    KeyValuePairCollection.prototype.getSize = function () {
+        return this._data.length;
+    };
+    KeyValuePairCollection.prototype.get = function (key) {
+        var idx = this.findKeyIndex(key);
+        if (idx === false) {
+            return null;
+        }
+        return this._data[idx].getValue();
+    };
+    KeyValuePairCollection.prototype.set = function (key, value) {
+        var idx = this.findKeyIndex(key);
+        var data = new KeyValuePair(key, value);
+        if (idx === false) {
+            this._data.push(data);
+        }
+        else {
+            this._data[idx] = data;
+        }
+    };
+    KeyValuePairCollection.prototype.getKeys = function () {
+        var keys = [];
+        if (this.getSize() >= 0) {
+            for (var i = 0; i < this.getSize(); i++) {
+                keys.push(this._data[i].getKey());
+            }
+        }
+        return keys;
+    };
+    KeyValuePairCollection.prototype.getValues = function () {
+        var values = [];
+        if (this.getSize() >= 0) {
+            for (var i = 0; i < this.getSize(); i++) {
+                values.push(this._data[i].getValue());
+            }
+        }
+        return values;
+    };
+    KeyValuePairCollection.prototype.sortByKeys = function () {
+        this._data.sort(function (a, b) {
+            var aKey = a.getKey();
+            var bKey = b.getKey();
+            if (aKey < bKey) {
+                return -1;
+            }
+            if (aKey > bKey) {
+                return 1;
+            }
+            return 0;
+        });
+    };
+    KeyValuePairCollection.prototype.sort = function (callbackFn) {
+        if (!callbackFn) {
+            this._data.sort(function (a, b) {
+                var aKey = a.getValue();
+                var bKey = b.getValue();
+                if (aKey < bKey) {
+                    return -1;
+                }
+                if (aKey > bKey) {
+                    return 1;
+                }
+                return 0;
+            });
+        }
+        else {
+            this._data.sort(callbackFn);
+        }
+    };
+    KeyValuePairCollection.prototype.has = function (key) {
+        return this.findKeyIndex(key) !== false;
+    };
+    KeyValuePairCollection.prototype.findKeyIndex = function (key) {
+        if (this.getSize() < 0)
+            return false;
+        for (var i = 0; i < this.getSize(); i++) {
+            var kv = this._data[i];
+            if (kv.getKey() == key) {
+                return i;
+            }
+        }
+        return false;
+    };
+    KeyValuePairCollection.prototype.toArray = function () {
+        return this._data;
+    };
+    return KeyValuePairCollection;
+}());
+var CalendarTaskCollection = (function () {
+    function CalendarTaskCollection() {
+        this._dataTasks = [];
+        this._cRows = [];
+    }
+    CalendarTaskCollection.prototype.getData = function (callback) {
+        var sett = CalendarSettings.getInstance();
+        var xhr = new XMLHttpRequest();
+        xhr.open(sett.requestMethod, sett.dataUrl, true);
+        xhr.send();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    var resp = xhr.responseText;
+                    var respJson = JSON.parse(resp);
+                    callback(respJson);
+                }
+                else {
+                }
+            }
+            else {
+            }
+        };
+    };
+    CalendarTaskCollection.prototype.loadUrl = function (callbackFn) {
+        var _this = this;
+        this.getData(function (res) {
+            _this.loadArray(res);
+            callbackFn.call(_this);
+        });
+    };
+    CalendarTaskCollection.prototype.loadArray = function (jsonOArray) {
+        this._dataTasks = [];
+        if (jsonOArray.length > 0) {
+            for (var j = 0; j < jsonOArray.length; j++) {
+                var dataRow = new CalendarDataRow(jsonOArray[j]);
+                var cTask = new CalendarTask(dataRow);
+                if (!cTask.isCrossPeriod(Calendar.getStartPeriod(), Calendar.getEndPeriod())) {
+                    continue;
+                }
+                this._dataTasks.push(cTask);
+            }
+        }
+        this.sort();
+        this.group();
+    };
+    CalendarTaskCollection.prototype.sort = function () {
+        var that = this;
+        this._dataTasks.sort(function (a, b) {
+            var aKey = that.makeKey(a);
+            var bKey = that.makeKey(b);
+            if (aKey < bKey) {
+                return -1;
+            }
+            if (aKey > bKey) {
+                return 1;
+            }
+            return 0;
+        });
+    };
+    CalendarTaskCollection.prototype.getSize = function () {
+        return this._cRows.length;
+    };
+    CalendarTaskCollection.prototype.getByIndex = function (idx) {
+        if ((idx || idx >= 0) && this._cRows.length > 0 && idx < this._cRows.length) {
+            return this._cRows[idx];
+        }
+        return null;
+    };
+    CalendarTaskCollection.prototype.group = function () {
+        var _map = new KeyValuePairCollection();
+        for (var j = 0; j < this._dataTasks.length; j++) {
+            var cTask = this._dataTasks[j];
+            var key = this.makeKey(cTask);
+            if (_map.has(key)) {
+                var mapped = _map.get(key);
+                mapped.set(mapped.getSize() + 1, cTask);
+            }
+            else {
+                var newCollection = new KeyValuePairCollection();
+                newCollection.set(0, cTask);
+                _map.set(key, newCollection);
+            }
+        }
+        for (var i = 0; i < _map.getKeys().length; i++) {
+            var value = _map.get(_map.getKeys()[i]);
+            value.sort(function (a, b) {
+                var aDate = a.getValue().getDataRow().getStart();
+                var bDate = b.getValue().getDataRow().getStart();
+                if (aDate.isLT(bDate, 'y-m-d')) {
+                    return -1;
+                }
+                else if (aDate.isGT(bDate, 'y-m-d')) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            });
+        }
+        this._cRows = [];
+        for (var k = 0; k < _map.getKeys().length; k++) {
+            var kvpc = _map.get(_map.getKeys()[k]).toArray();
+            var acTasks = _map.get(_map.getKeys()[k]).getValues();
+            var tmpTasks = [];
+            var i = 0;
+            while (true) {
+                i++;
+                var cRow = new CalendarRow();
+                while (acTasks.length > 0) {
+                    var item = acTasks.shift();
+                    if (!item || typeof (item) == 'undefined') {
+                        continue;
+                    }
+                    var added = cRow.add(item);
+                    if (!added) {
+                        tmpTasks.push(item);
+                    }
+                    else {
+                        if (cRow.getTasksCount() > 1) {
+                            var prevCT = cRow.getByIndex(cRow.getTasksCount() - 2);
+                            prevCT.setNextRowTaskId(item.getId());
+                            item.setPrevRowTaskId(prevCT.getId());
+                        }
+                    }
+                }
+                this._cRows.push(cRow);
+                if (tmpTasks.length == 0) {
+                    break;
+                }
+                else {
+                    acTasks = tmpTasks;
+                    tmpTasks = [];
+                }
+                if (i == 20) {
+                    console.log('i=', i, 'Breaked/ Maximum rows limit detected.');
+                    break;
+                }
+            }
+        }
+    };
+    CalendarTaskCollection.prototype.makeKey = function (dataTask) {
+        return dataTask.getDataRow().getUser() + '_' + dataTask.getDataRow().getType();
+    };
+    return CalendarTaskCollection;
+}());
+var Moment = (function () {
+    function Moment(sDate, month, date, hours, minutes, seconds) {
+        if (sDate === void 0) { sDate = ''; }
+        this.sDate = sDate;
+        this._oDate = new Date();
+        if (this.sDate == '' || this.sDate == 'undefined' || this.sDate == null || this.sDate == 'function') {
+            this._oDate = new Date(Date.now());
+        }
+        else {
+            var pType = typeof (sDate);
+            if (pType == 'string') {
+                this._oDate = new Date(Date.parse(String(this.sDate)));
+            }
+            else if (pType == 'object') {
+                if (typeof (this.sDate) == 'function') {
+                    this._oDate = this.sDate.toDate();
+                    this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
+                }
+                else {
+                    this._oDate = this.sDate;
+                    this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
+                }
+            }
+            else if (pType == 'number') {
+                switch ('undefined') {
+                    case typeof (month):
+                        month = 0;
+                    case typeof (date):
+                        date = 1;
+                    case typeof (hours):
+                        hours = 0;
+                    case typeof (minutes):
+                        minutes = 0;
+                    case typeof (seconds):
+                        seconds = 0;
+                }
+                this._oDate = new Date(Number(sDate), Number(month), date, hours, minutes, seconds, 1);
+                this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
+            }
+        }
+    }
+    Moment.prototype.getYear = function () {
+        return this._oDate.getFullYear();
+    };
+    Moment.prototype.getMonth = function () {
+        return this._oDate.getMonth();
+    };
+    Moment.prototype.getDate = function () {
+        return this._oDate.getDate();
+    };
+    Moment.prototype.getDay = function () {
+        return this._oDate.getDay();
+    };
+    Moment.prototype.isDayoff = function () {
+        return this.getDay() == 0 || this.getDay() == 6;
+    };
+    Moment.prototype.clone = function () {
+        return new Moment(this.sDate);
+    };
+    Moment.prototype.setMilliseconds = function () {
+        return this._oDate.getMilliseconds();
+    };
+    Moment.prototype.subtract = function (count, measure) {
+        if (measure === void 0) { measure = 'days'; }
+        return this.add(-count, measure);
+    };
+    Moment.prototype.add = function (count, measure) {
+        if (measure === void 0) { measure = 'days'; }
+        if (!count)
+            return this;
+        switch (measure) {
+            case 'days':
+                this._oDate.setDate(this._oDate.getDate() + count);
+                break;
+            case 'weeks':
+                this._oDate.setDate(this._oDate.getDate() + (count * 7));
+                break;
+            case 'months':
+                this._oDate.setMonth(this._oDate.getMonth() + count);
+                break;
+            case 'quarters':
+                this._oDate.setMonth(this._oDate.getMonth() + (count * 3));
+                break;
+            case 'years':
+                this._oDate.setFullYear(this._oDate.getFullYear() + count);
+                break;
+            case 'hours':
+                this._oDate.setHours(this._oDate.getHours() + count);
+                break;
+            case 'minutes':
+                this._oDate.setMinutes(this._oDate.getMinutes() + count);
+                break;
+            case 'seconds':
+                this._oDate.setSeconds(this._oDate.getSeconds() + count);
+                break;
+            case 'milliseconds':
+                this._oDate.setMilliseconds(this._oDate.getMilliseconds() + count);
+                break;
+        }
+        this.sDate = this.format('y-m-d h:i:s');
+        return this;
+    };
+    Moment.prototype.pad = function (num, length, fill, trailing) {
+        if (length === void 0) { length = 2; }
+        if (fill === void 0) { fill = '0'; }
+        if (trailing === void 0) { trailing = false; }
+        var sNum = String(num);
+        var sym = fill[0];
+        for (var i = 0; i < length - sNum.length; i++) {
+            if (trailing) {
+                sNum += sym;
+            }
+            else {
+                sNum = sym + sNum;
+            }
+        }
+        return sNum;
+    };
+    Moment.prototype.format = function (mask) {
+        return mask.replace(/y{1,4}/gi, this._oDate.getFullYear().toString())
+            .replace(/m{1,2}/gi, this.pad(this._oDate.getMonth() + 1))
+            .replace(/d{1,2}/gi, this.pad(this._oDate.getDate()))
+            .replace(/h{1,2}/gi, this.pad(this._oDate.getHours()))
+            .replace(/i{1,2}/gi, this.pad(this._oDate.getMinutes()))
+            .replace(/s{1,2}/gi, this.pad(this._oDate.getSeconds()));
+    };
+    Moment.prototype.isSame = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        var current = this.format(mask);
+        var compare = date.format(mask);
+        return current == compare;
+    };
+    Moment.prototype.isGE = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        return this.compare(date, mask, '>=');
+    };
+    Moment.prototype.isLE = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        return this.compare(date, mask, '<=');
+    };
+    Moment.prototype.isGT = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        return this.compare(date, mask, '>');
+    };
+    Moment.prototype.isLT = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        return this.compare(date, mask, '<');
+    };
+    Moment.prototype.isEQ = function (date, mask) {
+        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
+        return this.compare(date, mask, '=');
+    };
+    Moment.prototype.compare = function (date, mask, sign) {
+        if (sign === void 0) { sign = '='; }
+        var current = this.format(mask);
+        var compare = date.format(mask);
+        var currentDate = new Date(Date.parse(current));
+        var compareDate = new Date(Date.parse(compare));
+        if (sign == '>') {
+            return currentDate > compareDate;
+        }
+        if (sign == '<') {
+            return currentDate < compareDate;
+        }
+        if (sign == '>=') {
+            return currentDate >= compareDate;
+        }
+        if (sign == '<=') {
+            return currentDate <= compareDate;
+        }
+        return currentDate == compareDate;
+    };
+    Moment.prototype.startOf = function (measure) {
+        var res = new Moment();
+        switch (measure) {
+            case 'month':
+                res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
+                break;
+            case 'workmonth':
+                var mmt = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
+                res = mmt.clone();
+                while (res.isDayoff()) {
+                    res.add(1, 'days');
+                    if (res.isGT(mmt, 'ym')) {
+                        break;
+                    }
+                }
+                break;
+            case 'quarter':
+                var startMonth = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
+                var currMonth = startMonth.getMonth();
+                var addMonth = currMonth % 3;
+                res = startMonth.subtract(addMonth, 'months');
+                break;
+            case 'year':
+                res = new Moment(this._oDate.getFullYear(), 0, 1);
+                break;
+        }
+        return res;
+    };
+    Moment.prototype.endOf = function (measure) {
+        var res = new Moment();
+        switch (measure) {
+            case 'month':
+                res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth() + 1, 0));
+                break;
+            case 'quarter':
+                var startMonth = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
+                var currMonth = startMonth.getMonth();
+                var addMonth = currMonth % 3;
+                var dat = startMonth.add(addMonth, 'months');
+                res = new Moment(new Date(dat.getYear(), dat.getMonth() + 1, 0));
+                break;
+            case 'year':
+                res = new Moment(this._oDate.getFullYear(), 11, 31);
+                break;
+        }
+        return res;
+    };
+    Moment.prototype.isBetween = function (from, to) {
+        return (this._oDate <= to.toDate() && this._oDate >= from.toDate());
+    };
+    Moment.prototype.toDate = function () {
+        return this._oDate;
+    };
+    Moment.prototype.diff = function (date, measure) {
+        if (measure === void 0) { measure = 'days'; }
+        var timeValues = {
+            ms2s: 1000,
+            s2i: 60,
+            i2h: 60,
+            h2d: 24
+        };
+        var begda = this.clone();
+        var endda = date.clone();
+        if (measure == 'days') {
+            begda = new Moment(this.format('y-m-d'));
+            endda = new Moment(date.format('y-m-d'));
+        }
+        var timeDiff = Math.abs(endda.toDate().getTime() - begda.toDate().getTime());
+        var devider = 1;
+        switch (measure) {
+            case 'days':
+                devider = timeValues.ms2s * timeValues.s2i * timeValues.i2h * timeValues.h2d;
+                break;
+        }
+        return Math.ceil(timeDiff / devider);
+    };
+    Moment.prototype.isLastDayOfMonth = function () {
+        var date = this.clone().endOf('month');
+        return this.isSame(date, 'y-m-d');
+    };
+    Moment.prototype.isFirstDayOfMonth = function () {
+        var date = this.clone().startOf('month');
+        return this.isSame(date, 'y-m-d');
+    };
+    Moment.prototype.isFirstWorkDayOfMonth = function () {
+        var date = this.clone().startOf('workmonth');
+        return this.isSame(date, 'y-m-d');
+    };
+    return Moment;
+}());
+var KeyValuePair = (function () {
+    function KeyValuePair(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    KeyValuePair.prototype.getKey = function () {
+        return this.key;
+    };
+    KeyValuePair.prototype.setKey = function (k) {
+        this.key = k;
+    };
+    KeyValuePair.prototype.getValue = function () {
+        return this.value;
+    };
+    KeyValuePair.prototype.setValue = function (v) {
+        this.value = v;
+    };
+    return KeyValuePair;
+}());
+var CalendarHtml = (function () {
+    function CalendarHtml() {
+    }
+    CalendarHtml.createText = function (label) {
+        return document.createTextNode(label);
+    };
+    CalendarHtml.createRow = function (bHeader) {
+        var div = document.createElement('div');
+        div.classList.add('row');
+        if (bHeader) {
+            div.classList.add('row-header');
+        }
+        return div;
+    };
+    CalendarHtml.createDay = function (mmt) {
+        var day = document.createElement('div');
+        day.classList.add('col');
+        day.classList.add('day');
+        day.dataset.date = mmt.format('y-m-d');
+        if (CalendarHtml.isDayoff(mmt)) {
+            day.classList.add('day-off');
+        }
+        if ((new Moment())
+            .isSame(new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate()), 'YYYYMMDD')) {
+            day.classList.add('now');
+        }
+        return day;
+    };
+    CalendarHtml.isDayoff = function (mmt) {
+        var res = mmt.isDayoff();
+        var spec = false;
+        var sett = CalendarSettings.getInstance();
+        if (sett.holidaysDate.length > 0) {
+            for (var i = 0; i < sett.holidaysDate.length; i++) {
+                var date = new Moment(sett.holidaysDate[i]);
+                spec = false;
+                spec = date.isSame(mmt, 'y-m-d');
+                if (spec) {
+                    break;
+                }
+            }
+        }
+        var hol = spec ? spec : res;
+        var extra = false;
+        if (sett.extraworkdaysDate.length > 0) {
+            for (var i = 0; i < sett.extraworkdaysDate.length; i++) {
+                var date = new Moment(sett.extraworkdaysDate[i]);
+                extra = false;
+                extra = date.isSame(mmt, 'y-m-d');
+                if (extra) {
+                    break;
+                }
+            }
+        }
+        var total = extra ? !extra : hol;
+        return total;
+    };
+    CalendarHtml.createCell = function () {
+        var div = document.createElement('div');
+        div.classList.add('col');
+        div.classList.add('day');
+        return div;
+    };
+    CalendarHtml.createTaskText = function (label) {
+        var span = document.createElement('span');
+        var text = CalendarHtml.createText(label);
+        span.appendChild(text);
+        return span;
+    };
+    CalendarHtml.createRowGroup = function (label) {
+        if (label === void 0) { label = ''; }
+        var div = document.createElement('div');
+        div.classList.add('col');
+        div.classList.add('group');
+        if (label) {
+            var text = document.createTextNode(label);
+            div.appendChild(text);
+        }
+        return div;
+    };
+    return CalendarHtml;
+}());
 var Calendar = (function () {
     function Calendar(settings) {
         this._taskCollection = null;
@@ -420,196 +1059,56 @@ var CalendarDataRow = (function () {
     };
     return CalendarDataRow;
 }());
-var CalendarHtml = (function () {
-    function CalendarHtml() {
+var CalendarTaskDate = (function () {
+    function CalendarTaskDate(_date) {
+        this._date = _date;
+        this.hasNext = false;
+        this.hasPrev = false;
+        this.isFirst = false;
+        this.isLast = false;
     }
-    CalendarHtml.createText = function (label) {
-        return document.createTextNode(label);
+    CalendarTaskDate.prototype.getMoment = function () {
+        return this._date;
     };
-    CalendarHtml.createRow = function (bHeader) {
-        var div = document.createElement('div');
-        div.classList.add('row');
-        if (bHeader) {
-            div.classList.add('row-header');
+    CalendarTaskDate.prototype.render = function (day, taskId) {
+        var _this = this;
+        day.classList.add('task');
+        day.dataset.taskId = String(taskId);
+        day.classList.add('task-' + taskId);
+        day.addEventListener('mouseenter', function (event) {
+            _this.mouseEvent(event, 'mouseenter');
+        }, false);
+        day.addEventListener('mouseleave', function (event) {
+            _this.mouseEvent(event, 'mouseleave');
+        }, false);
+        if (this.isFirst) {
+            day.classList.add('task-start');
         }
-        return div;
+        if (this.isLast) {
+            day.classList.add('task-end');
+        }
+        if (this.hasNext) {
+            day.classList.add('task-has-next');
+        }
+        if (this.hasPrev) {
+            day.classList.add('task-hasprev');
+        }
     };
-    CalendarHtml.createDay = function (mmt) {
-        var day = document.createElement('div');
-        day.classList.add('col');
-        day.classList.add('day');
-        day.dataset.date = mmt.format('y-m-d');
-        if (CalendarHtml.isDayoff(mmt)) {
-            day.classList.add('day-off');
-        }
-        if ((new Moment())
-            .isSame(new Moment(mmt.getYear(), mmt.getMonth(), mmt.getDate()), 'YYYYMMDD')) {
-            day.classList.add('now');
-        }
-        return day;
-    };
-    CalendarHtml.isDayoff = function (mmt) {
-        var res = mmt.isDayoff();
-        var spec = false;
-        var sett = CalendarSettings.getInstance();
-        if (sett.holidaysDate.length > 0) {
-            for (var i = 0; i < sett.holidaysDate.length; i++) {
-                var date = new Moment(sett.holidaysDate[i]);
-                spec = false;
-                spec = date.isSame(mmt, 'y-m-d');
-                if (spec) {
-                    break;
-                }
+    CalendarTaskDate.prototype.mouseEvent = function (event, eventName) {
+        event.preventDefault();
+        var trg = event.target;
+        var dta = trg.dataset.taskId;
+        var els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
+        for (var i = 0; i < els.length; i++) {
+            if (eventName == 'mouseleave') {
+                els[i].classList.remove('task-hover');
+            }
+            else if (eventName == 'mouseenter') {
+                els[i].classList.add('task-hover');
             }
         }
-        var hol = spec ? spec : res;
-        var extra = false;
-        if (sett.extraworkdaysDate.length > 0) {
-            for (var i = 0; i < sett.extraworkdaysDate.length; i++) {
-                var date = new Moment(sett.extraworkdaysDate[i]);
-                extra = false;
-                extra = date.isSame(mmt, 'y-m-d');
-                if (extra) {
-                    break;
-                }
-            }
-        }
-        var total = extra ? !extra : hol;
-        return total;
     };
-    CalendarHtml.createCell = function () {
-        var div = document.createElement('div');
-        div.classList.add('col');
-        div.classList.add('day');
-        return div;
-    };
-    CalendarHtml.createTaskText = function (label) {
-        var span = document.createElement('span');
-        var text = CalendarHtml.createText(label);
-        span.appendChild(text);
-        return span;
-    };
-    CalendarHtml.createRowGroup = function (label) {
-        if (label === void 0) { label = ''; }
-        var div = document.createElement('div');
-        div.classList.add('col');
-        div.classList.add('group');
-        if (label) {
-            var text = document.createTextNode(label);
-            div.appendChild(text);
-        }
-        return div;
-    };
-    return CalendarHtml;
-}());
-var CalendarRow = (function () {
-    function CalendarRow() {
-        this._user = '';
-        this._type = '';
-        this._tasks = [];
-    }
-    CalendarRow.prototype.getUser = function () {
-        return this._user;
-    };
-    CalendarRow.prototype.getType = function () {
-        return this._type;
-    };
-    CalendarRow.prototype.add = function (task) {
-        this._user = task.getDataRow().getUser();
-        this._type = task.getDataRow().getType();
-        if (this._tasks.length > 0) {
-            var lastTask = this._tasks[this._tasks.length - 1];
-            var diff = lastTask.getEndDate().diff(task.getStartDate());
-            if (diff <= 1 || lastTask.getEndDate().toDate() > task.getStartDate().toDate()) {
-                return false;
-            }
-        }
-        this._tasks.push(task);
-        return true;
-    };
-    CalendarRow.prototype.getTaskOnDate = function (date) {
-        if (this._tasks.length > 0) {
-            for (var i = 0; i < this._tasks.length; i++) {
-                var task = this._tasks[i];
-                if (task.isApplyedToDate(date)) {
-                    return task;
-                }
-            }
-        }
-        return null;
-    };
-    CalendarRow.prototype.getTasksCount = function () {
-        return this._tasks.length;
-    };
-    CalendarRow.prototype.getByIndex = function (idx) {
-        if (idx >= this._tasks.length || idx < 0) {
-            return null;
-        }
-        return this._tasks[idx];
-    };
-    CalendarRow.prototype.getNextTask = function (currentTask) {
-        var currentLast = currentTask.getEndDate();
-        if (this._tasks.length > 0) {
-            for (var i = 0; i < this._tasks.length; i++) {
-                var task = this._tasks[i];
-                var taskStart = task.getStartDate();
-                if (currentLast.isLT(taskStart, 'y-m-d')) {
-                    return task;
-                }
-            }
-        }
-        return null;
-    };
-    CalendarRow.prototype.getSpaseToNextTask = function (mmt) {
-        var currentTask = this.getTaskOnDate(mmt);
-        if (!currentTask) {
-            return 365;
-        }
-        var nextTask = this.getNextTask(currentTask);
-        if (!nextTask) {
-            return 365;
-        }
-        return mmt.diff(nextTask.getStartDate()) - 1;
-    };
-    return CalendarRow;
-}());
-var TimeRange;
-(function (TimeRange) {
-    TimeRange["Year"] = "year";
-    TimeRange["Quarter"] = "quarter";
-    TimeRange["Month"] = "month";
-    TimeRange["Week"] = "week";
-    TimeRange[TimeRange["TimeLine"] = 0] = "TimeLine";
-})(TimeRange || (TimeRange = {}));
-;
-var CalendarRangeType;
-(function (CalendarRangeType) {
-    CalendarRangeType[CalendarRangeType["CurrentDate"] = 0] = "CurrentDate";
-    CalendarRangeType[CalendarRangeType["Custom"] = 1] = "Custom";
-})(CalendarRangeType || (CalendarRangeType = {}));
-var CalendarSettings = (function () {
-    function CalendarSettings() {
-        this.dataUrl = '';
-        this.requestMethod = 'GET';
-        this.containerId = '';
-        this.rangeType = CalendarRangeType.CurrentDate;
-        this.timeRange = TimeRange.Month;
-        this.customDateStart = new Moment();
-        this.customDateEnd = new Moment();
-        this.leftShiftDays = 0;
-        this.rightShiftDays = 0;
-        this.autoWidthGroup = false;
-        this.holidaysDate = [];
-        this.extraworkdaysDate = [];
-    }
-    CalendarSettings.getInstance = function () {
-        if (this._instance == null) {
-            this._instance = new this();
-        }
-        return this._instance;
-    };
-    CalendarSettings._instance = null;
-    return CalendarSettings;
+    return CalendarTaskDate;
 }());
 var CalendarTask = (function () {
     function CalendarTask(_dataRow) {
@@ -736,202 +1235,76 @@ var CalendarTask = (function () {
     CalendarTask.taskNum = 0;
     return CalendarTask;
 }());
-var CalendarTaskCollection = (function () {
-    function CalendarTaskCollection() {
-        this._dataTasks = [];
-        this._cRows = [];
+var CalendarRow = (function () {
+    function CalendarRow() {
+        this._user = '';
+        this._type = '';
+        this._tasks = [];
     }
-    CalendarTaskCollection.prototype.getData = function (callback) {
-        var sett = CalendarSettings.getInstance();
-        var xhr = new XMLHttpRequest();
-        xhr.open(sett.requestMethod, sett.dataUrl, true);
-        xhr.send();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    var resp = xhr.responseText;
-                    var respJson = JSON.parse(resp);
-                    callback(respJson);
-                }
-                else {
-                }
-            }
-            else {
-            }
-        };
+    CalendarRow.prototype.getUser = function () {
+        return this._user;
     };
-    CalendarTaskCollection.prototype.loadUrl = function (callbackFn) {
-        var _this = this;
-        this.getData(function (res) {
-            _this.loadArray(res);
-            callbackFn.call(_this);
-        });
+    CalendarRow.prototype.getType = function () {
+        return this._type;
     };
-    CalendarTaskCollection.prototype.loadArray = function (jsonOArray) {
-        this._dataTasks = [];
-        if (jsonOArray.length > 0) {
-            for (var j = 0; j < jsonOArray.length; j++) {
-                var dataRow = new CalendarDataRow(jsonOArray[j]);
-                var cTask = new CalendarTask(dataRow);
-                if (!cTask.isCrossPeriod(Calendar.getStartPeriod(), Calendar.getEndPeriod())) {
-                    continue;
-                }
-                this._dataTasks.push(cTask);
+    CalendarRow.prototype.add = function (task) {
+        this._user = task.getDataRow().getUser();
+        this._type = task.getDataRow().getType();
+        if (this._tasks.length > 0) {
+            var lastTask = this._tasks[this._tasks.length - 1];
+            var diff = lastTask.getEndDate().diff(task.getStartDate());
+            if (diff <= 1 || lastTask.getEndDate().toDate() > task.getStartDate().toDate()) {
+                return false;
             }
         }
-        this.sort();
-        this.group();
+        this._tasks.push(task);
+        return true;
     };
-    CalendarTaskCollection.prototype.sort = function () {
-        var that = this;
-        this._dataTasks.sort(function (a, b) {
-            var aKey = that.makeKey(a);
-            var bKey = that.makeKey(b);
-            if (aKey < bKey) {
-                return -1;
+    CalendarRow.prototype.getTaskOnDate = function (date) {
+        if (this._tasks.length > 0) {
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
+                if (task.isApplyedToDate(date)) {
+                    return task;
+                }
             }
-            if (aKey > bKey) {
-                return 1;
-            }
-            return 0;
-        });
-    };
-    CalendarTaskCollection.prototype.getSize = function () {
-        return this._cRows.length;
-    };
-    CalendarTaskCollection.prototype.getByIndex = function (idx) {
-        if ((idx || idx >= 0) && this._cRows.length > 0 && idx < this._cRows.length) {
-            return this._cRows[idx];
         }
         return null;
     };
-    CalendarTaskCollection.prototype.group = function () {
-        var _map = new KeyValuePairCollection();
-        for (var j = 0; j < this._dataTasks.length; j++) {
-            var cTask = this._dataTasks[j];
-            var key = this.makeKey(cTask);
-            if (_map.has(key)) {
-                var mapped = _map.get(key);
-                mapped.set(mapped.getSize() + 1, cTask);
-            }
-            else {
-                var newCollection = new KeyValuePairCollection();
-                newCollection.set(0, cTask);
-                _map.set(key, newCollection);
-            }
+    CalendarRow.prototype.getTasksCount = function () {
+        return this._tasks.length;
+    };
+    CalendarRow.prototype.getByIndex = function (idx) {
+        if (idx >= this._tasks.length || idx < 0) {
+            return null;
         }
-        for (var i = 0; i < _map.getKeys().length; i++) {
-            var value = _map.get(_map.getKeys()[i]);
-            value.sort(function (a, b) {
-                var aDate = a.getValue().getDataRow().getStart();
-                var bDate = b.getValue().getDataRow().getStart();
-                if (aDate.isLT(bDate, 'y-m-d')) {
-                    return -1;
-                }
-                else if (aDate.isGT(bDate, 'y-m-d')) {
-                    return 1;
-                }
-                else {
-                    return 0;
-                }
-            });
-        }
-        this._cRows = [];
-        for (var k = 0; k < _map.getKeys().length; k++) {
-            var kvpc = _map.get(_map.getKeys()[k]).toArray();
-            var acTasks = _map.get(_map.getKeys()[k]).getValues();
-            var tmpTasks = [];
-            var i = 0;
-            while (true) {
-                i++;
-                var cRow = new CalendarRow();
-                while (acTasks.length > 0) {
-                    var item = acTasks.shift();
-                    if (!item || typeof (item) == 'undefined') {
-                        continue;
-                    }
-                    var added = cRow.add(item);
-                    if (!added) {
-                        tmpTasks.push(item);
-                    }
-                    else {
-                        if (cRow.getTasksCount() > 1) {
-                            var prevCT = cRow.getByIndex(cRow.getTasksCount() - 2);
-                            prevCT.setNextRowTaskId(item.getId());
-                            item.setPrevRowTaskId(prevCT.getId());
-                        }
-                    }
-                }
-                this._cRows.push(cRow);
-                if (tmpTasks.length == 0) {
-                    break;
-                }
-                else {
-                    acTasks = tmpTasks;
-                    tmpTasks = [];
-                }
-                if (i == 20) {
-                    console.log('i=', i, 'Breaked/ Maximum rows limit detected.');
-                    break;
+        return this._tasks[idx];
+    };
+    CalendarRow.prototype.getNextTask = function (currentTask) {
+        var currentLast = currentTask.getEndDate();
+        if (this._tasks.length > 0) {
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
+                var taskStart = task.getStartDate();
+                if (currentLast.isLT(taskStart, 'y-m-d')) {
+                    return task;
                 }
             }
         }
+        return null;
     };
-    CalendarTaskCollection.prototype.makeKey = function (dataTask) {
-        return dataTask.getDataRow().getUser() + '_' + dataTask.getDataRow().getType();
+    CalendarRow.prototype.getSpaseToNextTask = function (mmt) {
+        var currentTask = this.getTaskOnDate(mmt);
+        if (!currentTask) {
+            return 365;
+        }
+        var nextTask = this.getNextTask(currentTask);
+        if (!nextTask) {
+            return 365;
+        }
+        return mmt.diff(nextTask.getStartDate()) - 1;
     };
-    return CalendarTaskCollection;
-}());
-var CalendarTaskDate = (function () {
-    function CalendarTaskDate(_date) {
-        this._date = _date;
-        this.hasNext = false;
-        this.hasPrev = false;
-        this.isFirst = false;
-        this.isLast = false;
-    }
-    CalendarTaskDate.prototype.getMoment = function () {
-        return this._date;
-    };
-    CalendarTaskDate.prototype.render = function (day, taskId) {
-        var _this = this;
-        day.classList.add('task');
-        day.dataset.taskId = String(taskId);
-        day.classList.add('task-' + taskId);
-        day.addEventListener('mouseenter', function (event) {
-            _this.mouseEvent(event, 'mouseenter');
-        }, false);
-        day.addEventListener('mouseleave', function (event) {
-            _this.mouseEvent(event, 'mouseleave');
-        }, false);
-        if (this.isFirst) {
-            day.classList.add('task-start');
-        }
-        if (this.isLast) {
-            day.classList.add('task-end');
-        }
-        if (this.hasNext) {
-            day.classList.add('task-has-next');
-        }
-        if (this.hasPrev) {
-            day.classList.add('task-hasprev');
-        }
-    };
-    CalendarTaskDate.prototype.mouseEvent = function (event, eventName) {
-        event.preventDefault();
-        var trg = event.target;
-        var dta = trg.dataset.taskId;
-        var els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
-        for (var i = 0; i < els.length; i++) {
-            if (eventName == 'mouseleave') {
-                els[i].classList.remove('task-hover');
-            }
-            else if (eventName == 'mouseenter') {
-                els[i].classList.add('task-hover');
-            }
-        }
-    };
-    return CalendarTaskDate;
+    return CalendarRow;
 }());
 var CalendarTools = (function () {
     function CalendarTools() {
@@ -948,379 +1321,6 @@ var CalendarTools = (function () {
         return s;
     };
     return CalendarTools;
-}());
-var KeyValuePair = (function () {
-    function KeyValuePair(key, value) {
-        this.key = key;
-        this.value = value;
-    }
-    KeyValuePair.prototype.getKey = function () {
-        return this.key;
-    };
-    KeyValuePair.prototype.setKey = function (k) {
-        this.key = k;
-    };
-    KeyValuePair.prototype.getValue = function () {
-        return this.value;
-    };
-    KeyValuePair.prototype.setValue = function (v) {
-        this.value = v;
-    };
-    return KeyValuePair;
-}());
-var KeyValuePairCollection = (function () {
-    function KeyValuePairCollection() {
-        this._data = [];
-    }
-    KeyValuePairCollection.prototype.getSize = function () {
-        return this._data.length;
-    };
-    KeyValuePairCollection.prototype.get = function (key) {
-        var idx = this.findKeyIndex(key);
-        if (idx === false) {
-            return null;
-        }
-        return this._data[idx].getValue();
-    };
-    KeyValuePairCollection.prototype.set = function (key, value) {
-        var idx = this.findKeyIndex(key);
-        var data = new KeyValuePair(key, value);
-        if (idx === false) {
-            this._data.push(data);
-        }
-        else {
-            this._data[idx] = data;
-        }
-    };
-    KeyValuePairCollection.prototype.getKeys = function () {
-        var keys = [];
-        if (this.getSize() >= 0) {
-            for (var i = 0; i < this.getSize(); i++) {
-                keys.push(this._data[i].getKey());
-            }
-        }
-        return keys;
-    };
-    KeyValuePairCollection.prototype.getValues = function () {
-        var values = [];
-        if (this.getSize() >= 0) {
-            for (var i = 0; i < this.getSize(); i++) {
-                values.push(this._data[i].getValue());
-            }
-        }
-        return values;
-    };
-    KeyValuePairCollection.prototype.sortByKeys = function () {
-        this._data.sort(function (a, b) {
-            var aKey = a.getKey();
-            var bKey = b.getKey();
-            if (aKey < bKey) {
-                return -1;
-            }
-            if (aKey > bKey) {
-                return 1;
-            }
-            return 0;
-        });
-    };
-    KeyValuePairCollection.prototype.sort = function (callbackFn) {
-        if (!callbackFn) {
-            this._data.sort(function (a, b) {
-                var aKey = a.getValue();
-                var bKey = b.getValue();
-                if (aKey < bKey) {
-                    return -1;
-                }
-                if (aKey > bKey) {
-                    return 1;
-                }
-                return 0;
-            });
-        }
-        else {
-            this._data.sort(callbackFn);
-        }
-    };
-    KeyValuePairCollection.prototype.has = function (key) {
-        return this.findKeyIndex(key) !== false;
-    };
-    KeyValuePairCollection.prototype.findKeyIndex = function (key) {
-        if (this.getSize() < 0)
-            return false;
-        for (var i = 0; i < this.getSize(); i++) {
-            var kv = this._data[i];
-            if (kv.getKey() == key) {
-                return i;
-            }
-        }
-        return false;
-    };
-    KeyValuePairCollection.prototype.toArray = function () {
-        return this._data;
-    };
-    return KeyValuePairCollection;
-}());
-var Moment = (function () {
-    function Moment(sDate, month, date, hours, minutes, seconds) {
-        if (sDate === void 0) { sDate = ''; }
-        this.sDate = sDate;
-        this._oDate = new Date();
-        if (this.sDate == '' || this.sDate == 'undefined' || this.sDate == null || this.sDate == 'function') {
-            this._oDate = new Date(Date.now());
-        }
-        else {
-            var pType = typeof (sDate);
-            if (pType == 'string') {
-                this._oDate = new Date(Date.parse(String(this.sDate)));
-            }
-            else if (pType == 'object') {
-                if (typeof (this.sDate) == 'function') {
-                    this._oDate = this.sDate.toDate();
-                    this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
-                }
-                else {
-                    this._oDate = this.sDate;
-                    this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
-                }
-            }
-            else if (pType == 'number') {
-                switch ('undefined') {
-                    case typeof (month):
-                        month = 0;
-                    case typeof (date):
-                        date = 1;
-                    case typeof (hours):
-                        hours = 0;
-                    case typeof (minutes):
-                        minutes = 0;
-                    case typeof (seconds):
-                        seconds = 0;
-                }
-                this._oDate = new Date(Number(sDate), Number(month), date, hours, minutes, seconds, 1);
-                this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
-            }
-        }
-    }
-    Moment.prototype.getYear = function () {
-        return this._oDate.getFullYear();
-    };
-    Moment.prototype.getMonth = function () {
-        return this._oDate.getMonth();
-    };
-    Moment.prototype.getDate = function () {
-        return this._oDate.getDate();
-    };
-    Moment.prototype.getDay = function () {
-        return this._oDate.getDay();
-    };
-    Moment.prototype.isDayoff = function () {
-        return this.getDay() == 0 || this.getDay() == 6;
-    };
-    Moment.prototype.clone = function () {
-        return new Moment(this.sDate);
-    };
-    Moment.prototype.setMilliseconds = function () {
-        return this._oDate.getMilliseconds();
-    };
-    Moment.prototype.subtract = function (count, measure) {
-        if (measure === void 0) { measure = 'days'; }
-        return this.add(-count, measure);
-    };
-    Moment.prototype.add = function (count, measure) {
-        if (measure === void 0) { measure = 'days'; }
-        if (!count)
-            return this;
-        switch (measure) {
-            case 'days':
-                this._oDate.setDate(this._oDate.getDate() + count);
-                break;
-            case 'weeks':
-                this._oDate.setDate(this._oDate.getDate() + (count * 7));
-                break;
-            case 'months':
-                this._oDate.setMonth(this._oDate.getMonth() + count);
-                break;
-            case 'quarters':
-                this._oDate.setMonth(this._oDate.getMonth() + (count * 3));
-                break;
-            case 'years':
-                this._oDate.setFullYear(this._oDate.getFullYear() + count);
-                break;
-            case 'hours':
-                this._oDate.setHours(this._oDate.getHours() + count);
-                break;
-            case 'minutes':
-                this._oDate.setMinutes(this._oDate.getMinutes() + count);
-                break;
-            case 'seconds':
-                this._oDate.setSeconds(this._oDate.getSeconds() + count);
-                break;
-            case 'milliseconds':
-                this._oDate.setMilliseconds(this._oDate.getMilliseconds() + count);
-                break;
-        }
-        this.sDate = this.format('y-m-d h:i:s');
-        return this;
-    };
-    Moment.prototype.pad = function (num, length, fill, trailing) {
-        if (length === void 0) { length = 2; }
-        if (fill === void 0) { fill = '0'; }
-        if (trailing === void 0) { trailing = false; }
-        var sNum = String(num);
-        var sym = fill[0];
-        for (var i = 0; i < length - sNum.length; i++) {
-            if (trailing) {
-                sNum += sym;
-            }
-            else {
-                sNum = sym + sNum;
-            }
-        }
-        return sNum;
-    };
-    Moment.prototype.format = function (mask) {
-        return mask.replace(/y{1,4}/gi, this._oDate.getFullYear().toString())
-            .replace(/m{1,2}/gi, this.pad(this._oDate.getMonth() + 1))
-            .replace(/d{1,2}/gi, this.pad(this._oDate.getDate()))
-            .replace(/h{1,2}/gi, this.pad(this._oDate.getHours()))
-            .replace(/i{1,2}/gi, this.pad(this._oDate.getMinutes()))
-            .replace(/s{1,2}/gi, this.pad(this._oDate.getSeconds()));
-    };
-    Moment.prototype.isSame = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        var current = this.format(mask);
-        var compare = date.format(mask);
-        return current == compare;
-    };
-    Moment.prototype.isGE = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        return this.compare(date, mask, '>=');
-    };
-    Moment.prototype.isLE = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        return this.compare(date, mask, '<=');
-    };
-    Moment.prototype.isGT = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        return this.compare(date, mask, '>');
-    };
-    Moment.prototype.isLT = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        return this.compare(date, mask, '<');
-    };
-    Moment.prototype.isEQ = function (date, mask) {
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
-        return this.compare(date, mask, '=');
-    };
-    Moment.prototype.compare = function (date, mask, sign) {
-        if (sign === void 0) { sign = '='; }
-        var current = this.format(mask);
-        var compare = date.format(mask);
-        var currentDate = new Date(Date.parse(current));
-        var compareDate = new Date(Date.parse(compare));
-        if (sign == '>') {
-            return currentDate > compareDate;
-        }
-        if (sign == '<') {
-            return currentDate < compareDate;
-        }
-        if (sign == '>=') {
-            return currentDate >= compareDate;
-        }
-        if (sign == '<=') {
-            return currentDate <= compareDate;
-        }
-        return currentDate == compareDate;
-    };
-    Moment.prototype.startOf = function (measure) {
-        var res = new Moment();
-        switch (measure) {
-            case 'month':
-                res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
-                break;
-            case 'workmonth':
-                var mmt = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
-                res = mmt.clone();
-                while (res.isDayoff()) {
-                    res.add(1, 'days');
-                    if (res.isGT(mmt, 'ym')) {
-                        break;
-                    }
-                }
-                break;
-            case 'quarter':
-                var startMonth = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
-                var currMonth = startMonth.getMonth();
-                var addMonth = currMonth % 3;
-                res = startMonth.subtract(addMonth, 'months');
-                break;
-            case 'year':
-                res = new Moment(this._oDate.getFullYear(), 0, 1);
-                break;
-        }
-        return res;
-    };
-    Moment.prototype.endOf = function (measure) {
-        var res = new Moment();
-        switch (measure) {
-            case 'month':
-                res = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth() + 1, 0));
-                break;
-            case 'quarter':
-                var startMonth = new Moment(new Date(this._oDate.getFullYear(), this._oDate.getMonth(), 1));
-                var currMonth = startMonth.getMonth();
-                var addMonth = currMonth % 3;
-                var dat = startMonth.add(addMonth, 'months');
-                res = new Moment(new Date(dat.getYear(), dat.getMonth() + 1, 0));
-                break;
-            case 'year':
-                res = new Moment(this._oDate.getFullYear(), 11, 31);
-                break;
-        }
-        return res;
-    };
-    Moment.prototype.isBetween = function (from, to) {
-        return (this._oDate <= to.toDate() && this._oDate >= from.toDate());
-    };
-    Moment.prototype.toDate = function () {
-        return this._oDate;
-    };
-    Moment.prototype.diff = function (date, measure) {
-        if (measure === void 0) { measure = 'days'; }
-        var timeValues = {
-            ms2s: 1000,
-            s2i: 60,
-            i2h: 60,
-            h2d: 24
-        };
-        var begda = this.clone();
-        var endda = date.clone();
-        if (measure == 'days') {
-            begda = new Moment(this.format('y-m-d'));
-            endda = new Moment(date.format('y-m-d'));
-        }
-        var timeDiff = Math.abs(endda.toDate().getTime() - begda.toDate().getTime());
-        var devider = 1;
-        switch (measure) {
-            case 'days':
-                devider = timeValues.ms2s * timeValues.s2i * timeValues.i2h * timeValues.h2d;
-                break;
-        }
-        return Math.ceil(timeDiff / devider);
-    };
-    Moment.prototype.isLastDayOfMonth = function () {
-        var date = this.clone().endOf('month');
-        return this.isSame(date, 'y-m-d');
-    };
-    Moment.prototype.isFirstDayOfMonth = function () {
-        var date = this.clone().startOf('month');
-        return this.isSame(date, 'y-m-d');
-    };
-    Moment.prototype.isFirstWorkDayOfMonth = function () {
-        var date = this.clone().startOf('workmonth');
-        return this.isSame(date, 'y-m-d');
-    };
-    return Moment;
 }());
 var sett = CalendarSettings.getInstance();
 sett.containerId = '#calendar';
