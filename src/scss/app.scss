@@ -17,7 +17,7 @@ $label-gradient-transparensy-start: 0.5;
     position: absolute;
     height: 100%;
     width: $day-cell-width;
-    right: 0;
+    right: 1px;
     background: linear-gradient(to left, rgba($color, 1) 0%, rgba($color, $label-gradient-transparensy-start) 100%);
 }
 

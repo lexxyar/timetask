@@ -12,6 +12,9 @@ var Calendar = (function () {
         this._renderEndTime = new Moment();
         this._maxUserName = 0;
         this._maxTaskType = 0;
+        this._events = new KeyValuePairCollection();
+        this._events.set('taskclick', null);
+        this._events.set('taskremove', null);
         this._div = document.querySelector(settings.containerId);
         this.loadUrl();
     }
@@ -26,7 +29,7 @@ var Calendar = (function () {
             }
         }
         else if (sett.rangeType == CalendarRangeType.Custom) {
-            ret = new Moment(sett.customDateStart);
+            ret = sett.customDateStart;
         }
         if (sett.leftShiftDays > 0) {
             ret.subtract(sett.leftShiftDays, 'days');
@@ -44,12 +47,15 @@ var Calendar = (function () {
             }
         }
         else if (sett.rangeType == CalendarRangeType.Custom) {
-            ret = new Moment(sett.customDateStart);
+            ret = sett.customDateEnd;
         }
         if (sett.rightShiftDays > 0) {
             ret.add(sett.rightShiftDays, 'days');
         }
         return ret;
+    };
+    Calendar.prototype.on = function (eventName, callbackFn) {
+        this._events.set(eventName, callbackFn);
     };
     Calendar.prototype.setData = function (data) {
         this._taskCollection = new CalendarTaskCollection();
@@ -108,6 +114,34 @@ var Calendar = (function () {
         });
         this._maxUserName = usersName.getValues().pop();
         this._maxTaskType = tasksType.getValues().pop();
+    };
+    Calendar.prototype.removeTask = function (id) {
+        var tasks = document.querySelectorAll('div.task[data-task-id="' + String(id) + '"');
+        for (var i = 0; i < tasks.length; i++) {
+            var div = tasks[i];
+            var cssClasses = div.classList.toString().split(/\s+/);
+            for (var j = 0; j < cssClasses.length; j++) {
+                if (cssClasses[j].toLowerCase() == 'col' || cssClasses[j].toLowerCase() == 'day' || cssClasses[j].toLowerCase() == 'now') {
+                    continue;
+                }
+                div.classList.remove(cssClasses[j]);
+            }
+            var attrs = [];
+            for (var j = 0; j < div.attributes.length; j++) {
+                var attr = div.attributes[j];
+                if (/^data-/.test(attr.nodeName)) {
+                    attrs.push(attr.nodeName);
+                }
+            }
+            for (var j = 0; j < attrs.length; j++) {
+                div.removeAttribute(attrs[j]);
+            }
+            div.innerHTML = "";
+        }
+        var callbackFn = this._events.get('taskremove');
+        if (callbackFn) {
+            callbackFn(id);
+        }
     };
     Calendar.prototype.render = function () {
         this._renderStartTime = new Moment();
@@ -168,21 +202,31 @@ var Calendar = (function () {
                     label_1.classList.add('value-width-' + String(this._maxTaskType));
                 }
                 row_1.appendChild(label_1);
-                for (var i = 0; i < diffDays; i++) {
+                var _loop_1 = function (i) {
                     var mmt = startMmt.clone().add(i);
                     var day = CalendarHtml.createDay(mmt);
-                    var firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
+                    var firstDayOfMonth = this_1.addDayData(day, mmt, i, diffDays);
                     var firstWorkDayOfMonth = mmt.isFirstWorkDayOfMonth();
                     var task = cRow.getTaskOnDate(mmt);
                     if (task) {
                         var calDate = task.getCTDate(mmt);
                         if (calDate) {
                             calDate.render(day, task.getId());
+                            var callbackFn_1 = this_1._events.get('taskclick');
+                            if (callbackFn_1) {
+                                day.addEventListener('click', function (e) {
+                                    var elem = e.target;
+                                    if (elem.tagName.toLowerCase() == 'span') {
+                                        elem = elem.parentNode;
+                                    }
+                                    callbackFn_1(elem);
+                                }, false);
+                            }
                             var idx = task.getLastDateIndex();
                             var duration = task.getDataRow().getDuration();
                             var firstDateOfMonth = mmt.startOf('month');
                             var lastDateOfMonth = mmt.endOf('month');
-                            var tillEndOfMonth = lastDateOfMonth.diff(mmt, 'days', 'y-m-d');
+                            var tillEndOfMonth = lastDateOfMonth.diff(mmt);
                             var tillStartOfMonth = firstDateOfMonth.diff(mmt);
                             var tillEndOfPeriod = endMmt.diff(mmt);
                             var tillStartOfPeriod = startMmt.diff(mmt);
@@ -190,7 +234,7 @@ var Calendar = (function () {
                             var daysSpent = (idx >= 0) ? (idx + 1) : 0;
                             var spaceToNextTask = cRow.getSpaseToNextTask(mmt);
                             var daysInTask = task.getEndDate().diff(task.getStartDate()) + 1;
-                            var textWidth = this.getLabelLengthInDays(task.getDataRow().getLabel());
+                            var textWidth = this_1.getLabelLengthInDays(task.getDataRow().getLabel());
                             var prevRowTaskId = task.getPrevRowTaskId();
                             var nextRowTaskId = task.getNextRowTaskId();
                             var isStartPeriod = calDate.getMoment().isSame(Calendar.getStartPeriod(), 'y-m-d');
@@ -213,7 +257,7 @@ var Calendar = (function () {
                             }
                             if (calDate.isFirst || (!calDate.isFirst && firstWorkDayOfMonth) || (!calDate.isFirst && isStartPeriod)) {
                                 day.classList.add('labeled');
-                                var labelLength = this.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
+                                var labelLength = this_1.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
                                 var labelEndDate = mmt.clone().add(labelLength - 1);
                                 var span = CalendarHtml.createTaskText(task.getDataRow().getLabel());
                                 span.classList.add('task-label');
@@ -239,6 +283,10 @@ var Calendar = (function () {
                         row_1.appendChild(monthBreak);
                     }
                     row_1.appendChild(day);
+                };
+                var this_1 = this;
+                for (var i = 0; i < diffDays; i++) {
+                    _loop_1(i);
                 }
                 cWrapper.appendChild(row_1);
             }
@@ -391,7 +439,7 @@ var CalendarHtml = (function () {
         day.classList.add('col');
         day.classList.add('day');
         day.dataset.date = mmt.format('y-m-d');
-        if (mmt.isDayoff()) {
+        if (CalendarHtml.isDayoff(mmt)) {
             day.classList.add('day-off');
         }
         if ((new Moment())
@@ -399,6 +447,35 @@ var CalendarHtml = (function () {
             day.classList.add('now');
         }
         return day;
+    };
+    CalendarHtml.isDayoff = function (mmt) {
+        var res = mmt.isDayoff();
+        var spec = false;
+        var sett = CalendarSettings.getInstance();
+        if (sett.holidaysDate.length > 0) {
+            for (var i = 0; i < sett.holidaysDate.length; i++) {
+                var date = new Moment(sett.holidaysDate[i]);
+                spec = false;
+                spec = date.isSame(mmt, 'y-m-d');
+                if (spec) {
+                    break;
+                }
+            }
+        }
+        var hol = spec ? spec : res;
+        var extra = false;
+        if (sett.extraworkdaysDate.length > 0) {
+            for (var i = 0; i < sett.extraworkdaysDate.length; i++) {
+                var date = new Moment(sett.extraworkdaysDate[i]);
+                extra = false;
+                extra = date.isSame(mmt, 'y-m-d');
+                if (extra) {
+                    break;
+                }
+            }
+        }
+        var total = extra ? !extra : hol;
+        return total;
     };
     CalendarHtml.createCell = function () {
         var div = document.createElement('div');
@@ -522,6 +599,8 @@ var CalendarSettings = (function () {
         this.leftShiftDays = 0;
         this.rightShiftDays = 0;
         this.autoWidthGroup = false;
+        this.holidaysDate = [];
+        this.extraworkdaysDate = [];
     }
     CalendarSettings.getInstance = function () {
         if (this._instance == null) {
@@ -670,20 +749,16 @@ var CalendarTaskCollection = (function () {
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    console.log("xhr done successfully");
                     var resp = xhr.responseText;
                     var respJson = JSON.parse(resp);
                     callback(respJson);
                 }
                 else {
-                    console.log("xhr failed");
                 }
             }
             else {
-                console.log("xhr processing going on");
             }
         };
-        console.log("request sent succesfully");
     };
     CalendarTaskCollection.prototype.loadUrl = function (callbackFn) {
         var _this = this;
@@ -999,7 +1074,7 @@ var Moment = (function () {
                 this._oDate = new Date(Date.parse(String(this.sDate)));
             }
             else if (pType == 'object') {
-                if (typeof (this.sDate.instanceOf) == 'function') {
+                if (typeof (this.sDate) == 'function') {
                     this._oDate = this.sDate.toDate();
                     this.sDate = this.format('YYYY-MM-DD HH:ii:SS');
                 }
@@ -1210,17 +1285,20 @@ var Moment = (function () {
     Moment.prototype.toDate = function () {
         return this._oDate;
     };
-    Moment.prototype.diff = function (date, measure, mask) {
+    Moment.prototype.diff = function (date, measure) {
         if (measure === void 0) { measure = 'days'; }
-        if (mask === void 0) { mask = 'YYYY-MM-DD HH:ii:SS'; }
         var timeValues = {
             ms2s: 1000,
             s2i: 60,
             i2h: 60,
             h2d: 24
         };
-        var begda = new Moment(this.format(mask));
-        var endda = new Moment(date.format(mask));
+        var begda = this.clone();
+        var endda = date.clone();
+        if (measure == 'days') {
+            begda = new Moment(this.format('y-m-d'));
+            endda = new Moment(date.format('y-m-d'));
+        }
         var timeDiff = Math.abs(endda.toDate().getTime() - begda.toDate().getTime());
         var devider = 1;
         switch (measure) {
@@ -1251,4 +1329,38 @@ sett.timeRange = TimeRange.TimeLine;
 sett.leftShiftDays = 14;
 sett.rightShiftDays = 14;
 sett.autoWidthGroup = true;
+sett.holidaysDate = [
+    '2018-01-01',
+    '2018-01-02',
+    '2018-01-03',
+    '2018-01-04',
+    '2018-01-05',
+    '2018-01-06',
+    '2018-01-07',
+    '2018-01-08',
+    '2018-02-23',
+    '2018-03-08',
+    '2018-03-09',
+    '2018-04-30',
+    '2018-05-01',
+    '2018-05-02',
+    '2018-05-09',
+    '2018-06-11',
+    '2018-06-12',
+    '2018-11-04',
+    '2018-12-31'
+];
+sett.extraworkdaysDate = [
+    '2018-04-28',
+    '2018-06-09',
+    '2018-12-29',
+];
 var app = new Calendar(sett);
+app.on('taskclick', function (e) {
+    var taskId = e.dataset.taskId;
+    console.log('Clicked task has ID', e.dataset.taskId, 'HTML:', e);
+    app.removeTask(taskId);
+});
+app.on('taskremove', function (id) {
+    console.log('Removed task with ID', id);
+});

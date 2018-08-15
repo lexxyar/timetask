@@ -320,7 +320,7 @@
               position: absolute;
               height: 100%;
               width: 1.7rem;
-              right: 0;
+              right: 1px;
               background: linear-gradient(to left, lightblue 0%, rgba(173, 216, 230, 0.5) 100%); }
             .task-calendar .row .col.day.labeled .task-label.end-dayoff:before {
               content: '';
@@ -328,7 +328,7 @@
               position: absolute;
               height: 100%;
               width: 1.7rem;
-              right: 0;
+              right: 1px;
               background: linear-gradient(to left, lightgray 0%, rgba(211, 211, 211, 0.5) 100%); }
             .task-calendar .row .col.day.labeled .task-label.end-day:before {
               content: '';
@@ -336,7 +336,7 @@
               position: absolute;
               height: 100%;
               width: 1.7rem;
-              right: 0;
+              right: 1px;
               background: linear-gradient(to left, white 0%, rgba(255, 255, 255, 0.5) 100%); }
         .task-calendar .row .col.day.month-break {
           border: none;
