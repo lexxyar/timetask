@@ -94,11 +94,14 @@ $label-gradient-transparensy-start: 0.5;
                 height: $row-height;
                 line-height: $row-height;
 
-                &.value-width-auto.value-width-181 {
-                    width: 181px;
-                    min-width: 181px;
-                    max-width: 181px;
+                @for $i from 10 to 800 {
+                    &.value-width-auto.value-width-#{$i} {
+                        width: #{$i}px;
+                        min-width: #{$i}px;
+                        max-width: #{$i}px;
+                    }    
                 }
+                
             }
 
             &.day {

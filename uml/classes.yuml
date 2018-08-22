@@ -1,0 +1,51 @@
+// {type:class}
+// {direction:topDown}
+[note: You can stick notes on diagrams too!{bg:cornsilk}]
+
+[KeyValuePairCollection]->[KeyValuePair]
+[TaskDataRow]->[ITaskDataRow]
+[Moment]<->[IMoment]
+[TaskDataRow]->[Moment]
+[TaskDataRow]->[IMoment]
+[Task]->[TaskDate]
+[Task]->[IMoment]
+[Task]->[TaskDataRow]
+[TaskDate]->[IMoment]
+[TaskCollection]->[ITaskDataRow]
+[TaskCollection]->[TaskDataRow]
+[TaskCollection]->[Task]
+[TaskCollection]->[KeyValuePair]
+[TaskCollection]->[KeyValuePairCollection]
+[TaskCollection]<->[CalendarRow]
+[TaskCollection]<->[Settings]
+[CalendarRow]->[Task]
+[CalendarRow]->[IMoment]
+[HtmlUi]->[IMoment]
+[HtmlUi]->[Moment]
+[HtmlUi]->[Settings]
+[Tools]
+[Settings]->[CalendarRangeType]
+[Settings]->[TimeRange]
+[Settings]->[IMoment]
+[Settings]->[Moment]
+
+[Calendar]->[KeyValuePairCollection]
+[Calendar]->[KeyValuePair]
+[Calendar]->[TaskCollection]
+[Calendar]->[Moment]
+[Calendar]->[IMoment]
+[Calendar]->[Settings]
+[Calendar]->[HtmlUi]
+
+
+
+
+
+
+[Customer]<>1-orders 0..*>[Order]
+[Order]++*-*>[LineItem]
+[Order]-1>[DeliveryMethod]
+[Order]*-*>[Product|EAN_Code|promo_price()]
+[Category]<->[Product]
+[DeliveryMethod]^[National]
+[DeliveryMethod]^[International]

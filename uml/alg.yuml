@@ -1,0 +1,23 @@
+// {type:state}
+(start)[Fill config]->(Calendar application running)
+(Calendar application running)[Load task data]->(Check task data received)
+(Check task data received)[No]->(Check task data received)
+(Check task data received)[Yes]->(Wait all data received)
+
+(Calendar application running)[Load user vacation data]->(Check vacation data received)
+(Check vacation data received)[No]->(Check vacation data received)
+(Check vacation data received)[Yes]->(Wait all data received)
+
+(Calendar application running)[Load special dates data]->(Check special dates data received)
+(Check special dates data received)[No]->(Check special dates data received)
+(Check special dates data received)[Yes]->(Wait all data received)
+
+(Wait all data received)[No]->(Wait all data received)
+(Wait all data received)[Yes]->(Render)
+
+(Render)->(Loop at tasks)->(Get next date)[Is Day off]->(Make Day off HTML element)->(End loop)
+(Get next date)[Is Task date]->(Make Task date HTML element)->(End loop)
+(Get next date)[Is Vacation date]->(Make Vacation date HTML element)->(End loop)
+(Get next date)[Is normal date]->(Make Normal HTML element)->(End loop)
+(End loop)[Has next]->(Get next date)
+(End loop)[Last item]->(end)

@@ -13,9 +13,10 @@ var CalendarRangeType;
     CalendarRangeType[CalendarRangeType["CurrentDate"] = 0] = "CurrentDate";
     CalendarRangeType[CalendarRangeType["Custom"] = 1] = "Custom";
 })(CalendarRangeType || (CalendarRangeType = {}));
-var CalendarSettings = (function () {
-    function CalendarSettings() {
-        this.dataUrl = '';
+var Settings = (function () {
+    function Settings() {
+        this.taskDataUrl = '';
+        this.vacationDataUrl = '';
         this.requestMethod = 'GET';
         this.containerId = '';
         this.rangeType = CalendarRangeType.CurrentDate;
@@ -28,14 +29,33 @@ var CalendarSettings = (function () {
         this.holidaysDate = [];
         this.extraworkdaysDate = [];
     }
-    CalendarSettings.getInstance = function () {
+    Settings.getInstance = function () {
         if (this._instance == null) {
             this._instance = new this();
         }
         return this._instance;
     };
-    CalendarSettings._instance = null;
-    return CalendarSettings;
+    Settings._instance = null;
+    return Settings;
+}());
+var KeyValuePair = (function () {
+    function KeyValuePair(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    KeyValuePair.prototype.getKey = function () {
+        return this.key;
+    };
+    KeyValuePair.prototype.setKey = function (k) {
+        this.key = k;
+    };
+    KeyValuePair.prototype.getValue = function () {
+        return this.value;
+    };
+    KeyValuePair.prototype.setValue = function (v) {
+        this.value = v;
+    };
+    return KeyValuePair;
 }());
 var KeyValuePairCollection = (function () {
     function KeyValuePairCollection() {
@@ -129,15 +149,304 @@ var KeyValuePairCollection = (function () {
     };
     return KeyValuePairCollection;
 }());
-var CalendarTaskCollection = (function () {
-    function CalendarTaskCollection() {
+var TaskDate = (function () {
+    function TaskDate(_date) {
+        this._date = _date;
+        this.hasNext = false;
+        this.hasPrev = false;
+        this.isFirst = false;
+        this.isLast = false;
+    }
+    TaskDate.prototype.getMoment = function () {
+        return this._date;
+    };
+    TaskDate.prototype.render = function (day, taskId) {
+        var _this = this;
+        day.classList.add('task');
+        day.dataset.taskId = String(taskId);
+        day.classList.add('task-' + taskId);
+        day.addEventListener('mouseenter', function (event) {
+            _this.mouseEvent(event, 'mouseenter');
+        }, false);
+        day.addEventListener('mouseleave', function (event) {
+            _this.mouseEvent(event, 'mouseleave');
+        }, false);
+        if (this.isFirst) {
+            day.classList.add('task-start');
+        }
+        if (this.isLast) {
+            day.classList.add('task-end');
+        }
+        if (this.hasNext) {
+            day.classList.add('task-has-next');
+        }
+        if (this.hasPrev) {
+            day.classList.add('task-hasprev');
+        }
+    };
+    TaskDate.prototype.mouseEvent = function (event, eventName) {
+        event.preventDefault();
+        var trg = event.target;
+        var dta = trg.dataset.taskId;
+        var els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
+        for (var i = 0; i < els.length; i++) {
+            if (eventName == 'mouseleave') {
+                els[i].classList.remove('task-hover');
+            }
+            else if (eventName == 'mouseenter') {
+                els[i].classList.add('task-hover');
+            }
+        }
+    };
+    return TaskDate;
+}());
+var Task = (function () {
+    function Task(_dataRow) {
+        this._dataRow = _dataRow;
+        this._dates = [];
+        this._lasfFoundedDateIndex = -1;
+        this._nextRowTaskId = 0;
+        this._prevRowTaskId = 0;
+        Task.taskNum++;
+        this.fillDates();
+    }
+    Task.prototype.getNextRowTaskId = function () {
+        return this._nextRowTaskId;
+    };
+    Task.prototype.setNextRowTaskId = function (id) {
+        this._nextRowTaskId = id;
+    };
+    Task.prototype.getPrevRowTaskId = function () {
+        return this._prevRowTaskId;
+    };
+    Task.prototype.setPrevRowTaskId = function (id) {
+        this._prevRowTaskId = id;
+    };
+    Task.prototype.getDataRow = function () {
+        return this._dataRow;
+    };
+    Task.prototype.getId = function () {
+        return this._dataRow.getId();
+    };
+    Task.prototype.fillDates = function () {
+        this._dates = [];
+        var dayoffCnt = this._dataRow.getDayoff();
+        var duration = this._dataRow.getDuration();
+        for (var i = 0; i < duration; i++) {
+            var nextDate = this._dataRow.getStart().clone();
+            nextDate.add(i, 'days');
+            var calDate = new TaskDate(nextDate);
+            if (calDate.getMoment().isDayoff()) {
+                if (dayoffCnt > 0) {
+                    if (this._dataRow.getDayoffdate()) {
+                        var doff = this._dataRow.getDayoffdate();
+                        if (doff) {
+                            if (doff.isSame(calDate.getMoment(), 'YYYYMMDD')) {
+                                dayoffCnt--;
+                                this._dates.push(calDate);
+                            }
+                            else {
+                                duration++;
+                            }
+                        }
+                    }
+                    else {
+                        dayoffCnt--;
+                        this._dates.push(calDate);
+                    }
+                }
+                else {
+                    duration++;
+                }
+            }
+            else {
+                this._dates.push(calDate);
+            }
+        }
+        for (var i = 0; i < this._dates.length; i++) {
+            var calDate = this._dates[i];
+            calDate.isFirst = false;
+            calDate.hasPrev = false;
+            calDate.hasNext = false;
+            calDate.isLast = false;
+            if (i == 0) {
+                calDate.isFirst = true;
+            }
+            if (i == this._dates.length - 1) {
+                calDate.isLast = true;
+            }
+            if (i > 0 && i < this._dates.length - 1) {
+                calDate.hasPrev = true;
+                calDate.hasNext = true;
+            }
+            if (i === 0 && i !== this._dates.length - 1) {
+                calDate.hasNext = true;
+            }
+            if (i !== 0 && i === this._dates.length - 1) {
+                calDate.hasPrev = true;
+            }
+        }
+    };
+    Task.prototype.isFirst = function () {
+        return this._dates.length == 0;
+    };
+    Task.prototype.isApplyedToDate = function (date) {
+        return this.getCTDate(date) !== null;
+    };
+    Task.prototype.getCTDate = function (date) {
+        for (var i = 0; i < this._dates.length; i++) {
+            var cdt = this._dates[i];
+            if (cdt.getMoment().isSame(date, 'y-m-d')) {
+                this._lasfFoundedDateIndex = i;
+                return cdt;
+            }
+        }
+        this._lasfFoundedDateIndex = -1;
+        return null;
+    };
+    Task.prototype.getLastDateIndex = function () {
+        return this._lasfFoundedDateIndex;
+    };
+    Task.prototype.isCrossPeriod = function (periodStart, periodEnd) {
+        for (var i = 0; i < this._dates.length; i++) {
+            var currentDate = this._dates[i];
+            if (currentDate.getMoment().isBetween(periodStart, periodEnd)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    Task.prototype.getStartDate = function () {
+        return this._dates[0].getMoment();
+    };
+    Task.prototype.getEndDate = function () {
+        return this._dates[this._dates.length - 1].getMoment();
+    };
+    Task.taskNum = 0;
+    return Task;
+}());
+var CalendarRow = (function () {
+    function CalendarRow() {
+        this._user = '';
+        this._type = '';
+        this._tasks = [];
+    }
+    CalendarRow.prototype.getUser = function () {
+        return this._user;
+    };
+    CalendarRow.prototype.getType = function () {
+        return this._type;
+    };
+    CalendarRow.prototype.add = function (task) {
+        this._user = task.getDataRow().getUser();
+        this._type = task.getDataRow().getType();
+        if (this._tasks.length > 0) {
+            var lastTask = this._tasks[this._tasks.length - 1];
+            var diff = lastTask.getEndDate().diff(task.getStartDate());
+            if (diff <= 1 || lastTask.getEndDate().toDate() > task.getStartDate().toDate()) {
+                return false;
+            }
+        }
+        this._tasks.push(task);
+        return true;
+    };
+    CalendarRow.prototype.getTaskOnDate = function (date) {
+        if (this._tasks.length > 0) {
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
+                if (task.isApplyedToDate(date)) {
+                    return task;
+                }
+            }
+        }
+        return null;
+    };
+    CalendarRow.prototype.getTasksCount = function () {
+        return this._tasks.length;
+    };
+    CalendarRow.prototype.getByIndex = function (idx) {
+        if (idx >= this._tasks.length || idx < 0) {
+            return null;
+        }
+        return this._tasks[idx];
+    };
+    CalendarRow.prototype.getNextTask = function (currentTask) {
+        var currentLast = currentTask.getEndDate();
+        if (this._tasks.length > 0) {
+            for (var i = 0; i < this._tasks.length; i++) {
+                var task = this._tasks[i];
+                var taskStart = task.getStartDate();
+                if (currentLast.isLT(taskStart, 'y-m-d')) {
+                    return task;
+                }
+            }
+        }
+        return null;
+    };
+    CalendarRow.prototype.getSpaseToNextTask = function (mmt) {
+        var currentTask = this.getTaskOnDate(mmt);
+        if (!currentTask) {
+            return 365;
+        }
+        var nextTask = this.getNextTask(currentTask);
+        if (!nextTask) {
+            return 365;
+        }
+        return mmt.diff(nextTask.getStartDate()) - 1;
+    };
+    return CalendarRow;
+}());
+var TaskDataRow = (function () {
+    function TaskDataRow(obj) {
+        this._id = obj.id;
+        this._user = obj.user;
+        this._type = obj.type;
+        this._start = new Moment(obj.start);
+        this._duration = obj.duration;
+        this._label = obj.label;
+        this._dayoff = obj.dayoff;
+        this._dayoffdate = null;
+        if (this._dayoff) {
+            if (obj.dayoffdate) {
+                this._dayoffdate = new Moment(obj.dayoffdate);
+            }
+        }
+    }
+    TaskDataRow.prototype.getId = function () {
+        return this._id;
+    };
+    TaskDataRow.prototype.getUser = function () {
+        return this._user;
+    };
+    TaskDataRow.prototype.getType = function () {
+        return this._type;
+    };
+    TaskDataRow.prototype.getStart = function () {
+        return this._start;
+    };
+    TaskDataRow.prototype.getDuration = function () {
+        return this._duration;
+    };
+    TaskDataRow.prototype.getLabel = function () {
+        return this._label;
+    };
+    TaskDataRow.prototype.getDayoff = function () {
+        return this._dayoff;
+    };
+    TaskDataRow.prototype.getDayoffdate = function () {
+        return this._dayoffdate;
+    };
+    return TaskDataRow;
+}());
+var TaskCollection = (function () {
+    function TaskCollection() {
         this._dataTasks = [];
         this._cRows = [];
     }
-    CalendarTaskCollection.prototype.getData = function (callback) {
-        var sett = CalendarSettings.getInstance();
+    TaskCollection.prototype.getData = function (callback) {
+        var sett = Settings.getInstance();
         var xhr = new XMLHttpRequest();
-        xhr.open(sett.requestMethod, sett.dataUrl, true);
+        xhr.open(sett.requestMethod, sett.taskDataUrl, true);
         xhr.send();
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -153,19 +462,19 @@ var CalendarTaskCollection = (function () {
             }
         };
     };
-    CalendarTaskCollection.prototype.loadUrl = function (callbackFn) {
+    TaskCollection.prototype.loadUrl = function (callbackFn) {
         var _this = this;
         this.getData(function (res) {
             _this.loadArray(res);
             callbackFn.call(_this);
         });
     };
-    CalendarTaskCollection.prototype.loadArray = function (jsonOArray) {
+    TaskCollection.prototype.loadArray = function (jsonOArray) {
         this._dataTasks = [];
         if (jsonOArray.length > 0) {
             for (var j = 0; j < jsonOArray.length; j++) {
-                var dataRow = new CalendarDataRow(jsonOArray[j]);
-                var cTask = new CalendarTask(dataRow);
+                var dataRow = new TaskDataRow(jsonOArray[j]);
+                var cTask = new Task(dataRow);
                 if (!cTask.isCrossPeriod(Calendar.getStartPeriod(), Calendar.getEndPeriod())) {
                     continue;
                 }
@@ -175,7 +484,7 @@ var CalendarTaskCollection = (function () {
         this.sort();
         this.group();
     };
-    CalendarTaskCollection.prototype.sort = function () {
+    TaskCollection.prototype.sort = function () {
         var that = this;
         this._dataTasks.sort(function (a, b) {
             var aKey = that.makeKey(a);
@@ -189,16 +498,16 @@ var CalendarTaskCollection = (function () {
             return 0;
         });
     };
-    CalendarTaskCollection.prototype.getSize = function () {
+    TaskCollection.prototype.getSize = function () {
         return this._cRows.length;
     };
-    CalendarTaskCollection.prototype.getByIndex = function (idx) {
+    TaskCollection.prototype.getByIndex = function (idx) {
         if ((idx || idx >= 0) && this._cRows.length > 0 && idx < this._cRows.length) {
             return this._cRows[idx];
         }
         return null;
     };
-    CalendarTaskCollection.prototype.group = function () {
+    TaskCollection.prototype.group = function () {
         var _map = new KeyValuePairCollection();
         for (var j = 0; j < this._dataTasks.length; j++) {
             var cTask = this._dataTasks[j];
@@ -270,10 +579,10 @@ var CalendarTaskCollection = (function () {
             }
         }
     };
-    CalendarTaskCollection.prototype.makeKey = function (dataTask) {
+    TaskCollection.prototype.makeKey = function (dataTask) {
         return dataTask.getDataRow().getUser() + '_' + dataTask.getDataRow().getType();
     };
-    return CalendarTaskCollection;
+    return TaskCollection;
 }());
 var Moment = (function () {
     function Moment(sDate, month, date, hours, minutes, seconds) {
@@ -537,32 +846,13 @@ var Moment = (function () {
     };
     return Moment;
 }());
-var KeyValuePair = (function () {
-    function KeyValuePair(key, value) {
-        this.key = key;
-        this.value = value;
+var HtmlUi = (function () {
+    function HtmlUi() {
     }
-    KeyValuePair.prototype.getKey = function () {
-        return this.key;
-    };
-    KeyValuePair.prototype.setKey = function (k) {
-        this.key = k;
-    };
-    KeyValuePair.prototype.getValue = function () {
-        return this.value;
-    };
-    KeyValuePair.prototype.setValue = function (v) {
-        this.value = v;
-    };
-    return KeyValuePair;
-}());
-var CalendarHtml = (function () {
-    function CalendarHtml() {
-    }
-    CalendarHtml.createText = function (label) {
+    HtmlUi.createText = function (label) {
         return document.createTextNode(label);
     };
-    CalendarHtml.createRow = function (bHeader) {
+    HtmlUi.createRow = function (bHeader) {
         var div = document.createElement('div');
         div.classList.add('row');
         if (bHeader) {
@@ -570,12 +860,12 @@ var CalendarHtml = (function () {
         }
         return div;
     };
-    CalendarHtml.createDay = function (mmt) {
+    HtmlUi.createDay = function (mmt) {
         var day = document.createElement('div');
         day.classList.add('col');
         day.classList.add('day');
         day.dataset.date = mmt.format('y-m-d');
-        if (CalendarHtml.isDayoff(mmt)) {
+        if (HtmlUi.isDayoff(mmt)) {
             day.classList.add('day-off');
         }
         if ((new Moment())
@@ -584,10 +874,10 @@ var CalendarHtml = (function () {
         }
         return day;
     };
-    CalendarHtml.isDayoff = function (mmt) {
+    HtmlUi.isDayoff = function (mmt) {
         var res = mmt.isDayoff();
         var spec = false;
-        var sett = CalendarSettings.getInstance();
+        var sett = Settings.getInstance();
         if (sett.holidaysDate.length > 0) {
             for (var i = 0; i < sett.holidaysDate.length; i++) {
                 var date = new Moment(sett.holidaysDate[i]);
@@ -613,19 +903,19 @@ var CalendarHtml = (function () {
         var total = extra ? !extra : hol;
         return total;
     };
-    CalendarHtml.createCell = function () {
+    HtmlUi.createCell = function () {
         var div = document.createElement('div');
         div.classList.add('col');
         div.classList.add('day');
         return div;
     };
-    CalendarHtml.createTaskText = function (label) {
+    HtmlUi.createTaskText = function (label) {
         var span = document.createElement('span');
-        var text = CalendarHtml.createText(label);
+        var text = HtmlUi.createText(label);
         span.appendChild(text);
         return span;
     };
-    CalendarHtml.createRowGroup = function (label) {
+    HtmlUi.createRowGroup = function (label) {
         if (label === void 0) { label = ''; }
         var div = document.createElement('div');
         div.classList.add('col');
@@ -636,7 +926,7 @@ var CalendarHtml = (function () {
         }
         return div;
     };
-    return CalendarHtml;
+    return HtmlUi;
 }());
 var Calendar = (function () {
     function Calendar(settings) {
@@ -651,14 +941,24 @@ var Calendar = (function () {
         this._renderEndTime = new Moment();
         this._maxUserName = 0;
         this._maxTaskType = 0;
+        this._taskDataLoaded = false;
+        this._dataLoadTimer = null;
+        this._dataLoadCheckTimeout = 60 * 1000;
+        this._dataLoadCheckIterator = 0;
+        this._dataLoadCheckInterval = 200;
+        this._userVacationDataLoaded = false;
         this._events = new KeyValuePairCollection();
         this._events.set('taskclick', null);
         this._events.set('taskremove', null);
+        this._taskDataLoaded = false;
+        this._userVacationDataLoaded = false;
+        this._dataLoadTimer = null;
+        this._dataLoadCheckIterator = 0;
         this._div = document.querySelector(settings.containerId);
-        this.loadUrl();
+        this.loadUrlTaskData();
     }
     Calendar.getStartPeriod = function () {
-        var sett = CalendarSettings.getInstance();
+        var sett = Settings.getInstance();
         var ret = new Moment();
         if (sett.rangeType == CalendarRangeType.CurrentDate) {
             if (sett.timeRange == TimeRange.TimeLine) {
@@ -676,7 +976,7 @@ var Calendar = (function () {
         return ret;
     };
     Calendar.getEndPeriod = function () {
-        var sett = CalendarSettings.getInstance();
+        var sett = Settings.getInstance();
         var ret = new Moment();
         if (sett.rangeType == CalendarRangeType.CurrentDate) {
             if (sett.timeRange == TimeRange.TimeLine) {
@@ -693,18 +993,43 @@ var Calendar = (function () {
         }
         return ret;
     };
+    Calendar.prototype.checkDataLoaded = function () {
+        if (this._dataLoadTimer === null) {
+            console.log('Create timer');
+            var that_1 = this;
+            this._dataLoadTimer = setInterval(function () { return that_1.checkDataLoaded(); }, this._dataLoadCheckInterval);
+        }
+        else {
+            this._dataLoadCheckIterator++;
+            console.log('Check.....');
+            if (this._taskDataLoaded && this._userVacationDataLoaded) {
+                clearInterval(this._dataLoadTimer);
+            }
+        }
+        if (this._dataLoadCheckIterator * this._dataLoadCheckInterval > this._dataLoadCheckTimeout) {
+            console.error('Data not received. Timeout error');
+            clearInterval(this._dataLoadTimer);
+        }
+    };
     Calendar.prototype.on = function (eventName, callbackFn) {
         this._events.set(eventName, callbackFn);
     };
     Calendar.prototype.setData = function (data) {
-        this._taskCollection = new CalendarTaskCollection();
+        this._taskCollection = new TaskCollection();
         this._taskCollection.loadArray(data);
         return this;
     };
-    Calendar.prototype.loadUrl = function () {
+    Calendar.prototype.loadUrlTaskData = function () {
         var _this = this;
-        this._taskCollection = new CalendarTaskCollection();
-        this._taskCollection.loadUrl(function () { return _this.render(); });
+        this._taskCollection = new TaskCollection();
+        var that = this;
+        this._taskCollection.loadUrl(function () {
+            that._taskDataLoaded = true;
+            _this.render();
+        });
+    };
+    Calendar.prototype.loadVacationUrl = function () {
+        this._userVacationDataLoaded = true;
     };
     Calendar.prototype.refresh = function () {
         this.render();
@@ -789,27 +1114,27 @@ var Calendar = (function () {
         var endMmt = Calendar.getEndPeriod();
         var diffDays = endMmt.diff(startMmt) + 1;
         var label;
-        var sett = CalendarSettings.getInstance();
+        var sett = Settings.getInstance();
         if (sett.autoWidthGroup) {
             this.calculateGroupLabelMaxWidth();
         }
         var cWrapper = document.createElement('div');
         cWrapper.classList.add('task-calendar');
-        row = CalendarHtml.createRow(true);
+        row = HtmlUi.createRow(true);
         row.classList.add('month-header');
-        label = CalendarHtml.createRowGroup();
+        label = HtmlUi.createRowGroup();
         label.classList.add('group-user');
         row.appendChild(label);
-        label = CalendarHtml.createRowGroup();
+        label = HtmlUi.createRowGroup();
         label.classList.add('group-type');
         row.appendChild(label);
         this.generateDateRange(row, startMmt, diffDays, true);
         cWrapper.appendChild(row);
-        row = CalendarHtml.createRow(true);
+        row = HtmlUi.createRow(true);
         row.classList.add('date-header');
-        label = CalendarHtml.createRowGroup('User');
+        label = HtmlUi.createRowGroup('User');
         row.appendChild(label);
-        label = CalendarHtml.createRowGroup('Task type');
+        label = HtmlUi.createRowGroup('Task type');
         row.appendChild(label);
         this.generateDateRange(row, startMmt, diffDays);
         cWrapper.appendChild(row);
@@ -824,18 +1149,18 @@ var Calendar = (function () {
                 if (!cRow) {
                     continue;
                 }
-                var row_1 = CalendarHtml.createRow();
+                var row_1 = HtmlUi.createRow();
                 if (prevUser && prevUser !== cRow.getUser()) {
                     row_1.classList.add('row-block-start');
                 }
                 prevUser = cRow.getUser();
-                var label_1 = CalendarHtml.createRowGroup(cRow.getUser());
+                var label_1 = HtmlUi.createRowGroup(cRow.getUser());
                 if (sett.autoWidthGroup) {
                     label_1.classList.add('value-width-auto');
                     label_1.classList.add('value-width-' + String(this._maxUserName));
                 }
                 row_1.appendChild(label_1);
-                label_1 = CalendarHtml.createRowGroup(cRow.getType());
+                label_1 = HtmlUi.createRowGroup(cRow.getType());
                 if (sett.autoWidthGroup) {
                     label_1.classList.add('value-width-auto');
                     label_1.classList.add('value-width-' + String(this._maxTaskType));
@@ -843,7 +1168,7 @@ var Calendar = (function () {
                 row_1.appendChild(label_1);
                 var _loop_1 = function (i) {
                     var mmt = startMmt.clone().add(i);
-                    var day = CalendarHtml.createDay(mmt);
+                    var day = HtmlUi.createDay(mmt);
                     var firstDayOfMonth = this_1.addDayData(day, mmt, i, diffDays);
                     var firstWorkDayOfMonth = mmt.isFirstWorkDayOfMonth();
                     var task = cRow.getTaskOnDate(mmt);
@@ -898,7 +1223,7 @@ var Calendar = (function () {
                                 day.classList.add('labeled');
                                 var labelLength = this_1.getMinNumber([spaceToNextTask, tillEndOfMonth + 1, tillEndOfPeriod + 1, textWidth]);
                                 var labelEndDate = mmt.clone().add(labelLength - 1);
-                                var span = CalendarHtml.createTaskText(task.getDataRow().getLabel());
+                                var span = HtmlUi.createTaskText(task.getDataRow().getLabel());
                                 span.classList.add('task-label');
                                 span.classList.add('task-label-length-' + String(labelLength));
                                 if (textWidth > labelLength) {
@@ -917,7 +1242,7 @@ var Calendar = (function () {
                         }
                     }
                     if (firstDayOfMonth && i != 0) {
-                        var monthBreak = CalendarHtml.createCell();
+                        var monthBreak = HtmlUi.createCell();
                         monthBreak.classList.add('month-break');
                         row_1.appendChild(monthBreak);
                     }
@@ -958,23 +1283,23 @@ var Calendar = (function () {
             var mmt = startMmt.clone().add(i);
             var day = void 0;
             if (asCell) {
-                day = CalendarHtml.createCell();
+                day = HtmlUi.createCell();
             }
             else {
-                day = CalendarHtml.createDay(mmt);
-                var label = CalendarHtml.createText(mmt.format('d'));
+                day = HtmlUi.createDay(mmt);
+                var label = HtmlUi.createText(mmt.format('d'));
                 day.appendChild(label);
             }
             var firstDayOfMonth = this.addDayData(day, mmt, i, diffDays);
             if (firstDayOfMonth && i != 0) {
-                var monthBreak = CalendarHtml.createCell();
+                var monthBreak = HtmlUi.createCell();
                 monthBreak.classList.add('month-break');
                 row.appendChild(monthBreak);
             }
             if (firstDayOfMonth || i == 0) {
                 if (asCell) {
                     var monthName = mmt.toDate().toLocaleString('ru-RU', { month: 'long' });
-                    var label = CalendarHtml.createText(monthName.charAt(0).toUpperCase() + monthName.slice(1));
+                    var label = HtmlUi.createText(monthName.charAt(0).toUpperCase() + monthName.slice(1));
                     day.appendChild(label);
                 }
             }
@@ -1017,314 +1342,10 @@ var Calendar = (function () {
     };
     return Calendar;
 }());
-var CalendarDataRow = (function () {
-    function CalendarDataRow(obj) {
-        this._id = obj.id;
-        this._user = obj.user;
-        this._type = obj.type;
-        this._start = new Moment(obj.start);
-        this._duration = obj.duration;
-        this._label = obj.label;
-        this._dayoff = obj.dayoff;
-        this._dayoffdate = null;
-        if (this._dayoff) {
-            if (obj.dayoffdate) {
-                this._dayoffdate = new Moment(obj.dayoffdate);
-            }
-        }
-    }
-    CalendarDataRow.prototype.getId = function () {
-        return this._id;
-    };
-    CalendarDataRow.prototype.getUser = function () {
-        return this._user;
-    };
-    CalendarDataRow.prototype.getType = function () {
-        return this._type;
-    };
-    CalendarDataRow.prototype.getStart = function () {
-        return this._start;
-    };
-    CalendarDataRow.prototype.getDuration = function () {
-        return this._duration;
-    };
-    CalendarDataRow.prototype.getLabel = function () {
-        return this._label;
-    };
-    CalendarDataRow.prototype.getDayoff = function () {
-        return this._dayoff;
-    };
-    CalendarDataRow.prototype.getDayoffdate = function () {
-        return this._dayoffdate;
-    };
-    return CalendarDataRow;
-}());
-var CalendarTaskDate = (function () {
-    function CalendarTaskDate(_date) {
-        this._date = _date;
-        this.hasNext = false;
-        this.hasPrev = false;
-        this.isFirst = false;
-        this.isLast = false;
-    }
-    CalendarTaskDate.prototype.getMoment = function () {
-        return this._date;
-    };
-    CalendarTaskDate.prototype.render = function (day, taskId) {
-        var _this = this;
-        day.classList.add('task');
-        day.dataset.taskId = String(taskId);
-        day.classList.add('task-' + taskId);
-        day.addEventListener('mouseenter', function (event) {
-            _this.mouseEvent(event, 'mouseenter');
-        }, false);
-        day.addEventListener('mouseleave', function (event) {
-            _this.mouseEvent(event, 'mouseleave');
-        }, false);
-        if (this.isFirst) {
-            day.classList.add('task-start');
-        }
-        if (this.isLast) {
-            day.classList.add('task-end');
-        }
-        if (this.hasNext) {
-            day.classList.add('task-has-next');
-        }
-        if (this.hasPrev) {
-            day.classList.add('task-hasprev');
-        }
-    };
-    CalendarTaskDate.prototype.mouseEvent = function (event, eventName) {
-        event.preventDefault();
-        var trg = event.target;
-        var dta = trg.dataset.taskId;
-        var els = document.querySelectorAll('div[data-task-id="' + dta + '"]');
-        for (var i = 0; i < els.length; i++) {
-            if (eventName == 'mouseleave') {
-                els[i].classList.remove('task-hover');
-            }
-            else if (eventName == 'mouseenter') {
-                els[i].classList.add('task-hover');
-            }
-        }
-    };
-    return CalendarTaskDate;
-}());
-var CalendarTask = (function () {
-    function CalendarTask(_dataRow) {
-        this._dataRow = _dataRow;
-        this._dates = [];
-        this._lasfFoundedDateIndex = -1;
-        this._nextRowTaskId = 0;
-        this._prevRowTaskId = 0;
-        CalendarTask.taskNum++;
-        this.fillDates();
-    }
-    CalendarTask.prototype.getNextRowTaskId = function () {
-        return this._nextRowTaskId;
-    };
-    CalendarTask.prototype.setNextRowTaskId = function (id) {
-        this._nextRowTaskId = id;
-    };
-    CalendarTask.prototype.getPrevRowTaskId = function () {
-        return this._prevRowTaskId;
-    };
-    CalendarTask.prototype.setPrevRowTaskId = function (id) {
-        this._prevRowTaskId = id;
-    };
-    CalendarTask.prototype.getDataRow = function () {
-        return this._dataRow;
-    };
-    CalendarTask.prototype.getId = function () {
-        return this._dataRow.getId();
-    };
-    CalendarTask.prototype.fillDates = function () {
-        this._dates = [];
-        var dayoffCnt = this._dataRow.getDayoff();
-        var duration = this._dataRow.getDuration();
-        for (var i = 0; i < duration; i++) {
-            var nextDate = this._dataRow.getStart().clone();
-            nextDate.add(i, 'days');
-            var calDate = new CalendarTaskDate(nextDate);
-            if (calDate.getMoment().isDayoff()) {
-                if (dayoffCnt > 0) {
-                    if (this._dataRow.getDayoffdate()) {
-                        var doff = this._dataRow.getDayoffdate();
-                        if (doff) {
-                            if (doff.isSame(calDate.getMoment(), 'YYYYMMDD')) {
-                                dayoffCnt--;
-                                this._dates.push(calDate);
-                            }
-                            else {
-                                duration++;
-                            }
-                        }
-                    }
-                    else {
-                        dayoffCnt--;
-                        this._dates.push(calDate);
-                    }
-                }
-                else {
-                    duration++;
-                }
-            }
-            else {
-                this._dates.push(calDate);
-            }
-        }
-        for (var i = 0; i < this._dates.length; i++) {
-            var calDate = this._dates[i];
-            calDate.isFirst = false;
-            calDate.hasPrev = false;
-            calDate.hasNext = false;
-            calDate.isLast = false;
-            if (i == 0) {
-                calDate.isFirst = true;
-            }
-            if (i == this._dates.length - 1) {
-                calDate.isLast = true;
-            }
-            if (i > 0 && i < this._dates.length - 1) {
-                calDate.hasPrev = true;
-                calDate.hasNext = true;
-            }
-            if (i === 0 && i !== this._dates.length - 1) {
-                calDate.hasNext = true;
-            }
-            if (i !== 0 && i === this._dates.length - 1) {
-                calDate.hasPrev = true;
-            }
-        }
-    };
-    CalendarTask.prototype.isFirst = function () {
-        return this._dates.length == 0;
-    };
-    CalendarTask.prototype.isApplyedToDate = function (date) {
-        return this.getCTDate(date) !== null;
-    };
-    CalendarTask.prototype.getCTDate = function (date) {
-        for (var i = 0; i < this._dates.length; i++) {
-            var cdt = this._dates[i];
-            if (cdt.getMoment().isSame(date, 'y-m-d')) {
-                this._lasfFoundedDateIndex = i;
-                return cdt;
-            }
-        }
-        this._lasfFoundedDateIndex = -1;
-        return null;
-    };
-    CalendarTask.prototype.getLastDateIndex = function () {
-        return this._lasfFoundedDateIndex;
-    };
-    CalendarTask.prototype.isCrossPeriod = function (periodStart, periodEnd) {
-        for (var i = 0; i < this._dates.length; i++) {
-            var currentDate = this._dates[i];
-            if (currentDate.getMoment().isBetween(periodStart, periodEnd)) {
-                return true;
-            }
-        }
-        return false;
-    };
-    CalendarTask.prototype.getStartDate = function () {
-        return this._dates[0].getMoment();
-    };
-    CalendarTask.prototype.getEndDate = function () {
-        return this._dates[this._dates.length - 1].getMoment();
-    };
-    CalendarTask.taskNum = 0;
-    return CalendarTask;
-}());
-var CalendarRow = (function () {
-    function CalendarRow() {
-        this._user = '';
-        this._type = '';
-        this._tasks = [];
-    }
-    CalendarRow.prototype.getUser = function () {
-        return this._user;
-    };
-    CalendarRow.prototype.getType = function () {
-        return this._type;
-    };
-    CalendarRow.prototype.add = function (task) {
-        this._user = task.getDataRow().getUser();
-        this._type = task.getDataRow().getType();
-        if (this._tasks.length > 0) {
-            var lastTask = this._tasks[this._tasks.length - 1];
-            var diff = lastTask.getEndDate().diff(task.getStartDate());
-            if (diff <= 1 || lastTask.getEndDate().toDate() > task.getStartDate().toDate()) {
-                return false;
-            }
-        }
-        this._tasks.push(task);
-        return true;
-    };
-    CalendarRow.prototype.getTaskOnDate = function (date) {
-        if (this._tasks.length > 0) {
-            for (var i = 0; i < this._tasks.length; i++) {
-                var task = this._tasks[i];
-                if (task.isApplyedToDate(date)) {
-                    return task;
-                }
-            }
-        }
-        return null;
-    };
-    CalendarRow.prototype.getTasksCount = function () {
-        return this._tasks.length;
-    };
-    CalendarRow.prototype.getByIndex = function (idx) {
-        if (idx >= this._tasks.length || idx < 0) {
-            return null;
-        }
-        return this._tasks[idx];
-    };
-    CalendarRow.prototype.getNextTask = function (currentTask) {
-        var currentLast = currentTask.getEndDate();
-        if (this._tasks.length > 0) {
-            for (var i = 0; i < this._tasks.length; i++) {
-                var task = this._tasks[i];
-                var taskStart = task.getStartDate();
-                if (currentLast.isLT(taskStart, 'y-m-d')) {
-                    return task;
-                }
-            }
-        }
-        return null;
-    };
-    CalendarRow.prototype.getSpaseToNextTask = function (mmt) {
-        var currentTask = this.getTaskOnDate(mmt);
-        if (!currentTask) {
-            return 365;
-        }
-        var nextTask = this.getNextTask(currentTask);
-        if (!nextTask) {
-            return 365;
-        }
-        return mmt.diff(nextTask.getStartDate()) - 1;
-    };
-    return CalendarRow;
-}());
-var CalendarTools = (function () {
-    function CalendarTools() {
-    }
-    CalendarTools.formatNumber = function (i) {
-        return CalendarTools.pad(i);
-    };
-    CalendarTools.pad = function (i, length) {
-        if (length === void 0) { length = 2; }
-        var s = i.toString();
-        for (var i_1 = s.length; i_1 < length; i_1++) {
-            s = '0' + s;
-        }
-        return s;
-    };
-    return CalendarTools;
-}());
-var sett = CalendarSettings.getInstance();
+var sett = Settings.getInstance();
 sett.containerId = '#calendar';
-sett.dataUrl = 'http://dummy.lexxsoft.ru';
+sett.taskDataUrl = 'https://my.api.mockaroo.com/timetask.json?key=6cd5c210';
+sett.vacationDataUrl = 'https://my.api.mockaroo.com/vacation.json?key=6cd5c210';
 sett.timeRange = TimeRange.TimeLine;
 sett.leftShiftDays = 14;
 sett.rightShiftDays = 14;
@@ -1364,3 +1385,19 @@ app.on('taskclick', function (e) {
 app.on('taskremove', function (id) {
     console.log('Removed task with ID', id);
 });
+var Tools = (function () {
+    function Tools() {
+    }
+    Tools.formatNumber = function (i) {
+        return Tools.pad(i);
+    };
+    Tools.pad = function (i, length) {
+        if (length === void 0) { length = 2; }
+        var s = i.toString();
+        for (var i_1 = s.length; i_1 < length; i_1++) {
+            s = '0' + s;
+        }
+        return s;
+    };
+    return Tools;
+}());
