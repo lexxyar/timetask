@@ -3,14 +3,20 @@
 [note: You can stick notes on diagrams too!{bg:cornsilk}]
 
 [KeyValuePairCollection]->[KeyValuePair]
+
 [TaskDataRow]->[ITaskDataRow]
+
 [Moment]<->[IMoment]
+
 [TaskDataRow]->[Moment]
 [TaskDataRow]->[IMoment]
+
 [Task]->[TaskDate]
 [Task]->[IMoment]
 [Task]->[TaskDataRow]
+
 [TaskDate]->[IMoment]
+
 [TaskCollection]->[ITaskDataRow]
 [TaskCollection]->[TaskDataRow]
 [TaskCollection]->[Task]
@@ -18,12 +24,15 @@
 [TaskCollection]->[KeyValuePairCollection]
 [TaskCollection]<->[CalendarRow]
 [TaskCollection]<->[Settings]
+[TaskCollection]<->[IParallel]
+
 [CalendarRow]->[Task]
 [CalendarRow]->[IMoment]
+
 [HtmlUi]->[IMoment]
 [HtmlUi]->[Moment]
 [HtmlUi]->[Settings]
-[Tools]
+
 [Settings]->[CalendarRangeType]
 [Settings]->[TimeRange]
 [Settings]->[IMoment]
@@ -36,16 +45,6 @@
 [Calendar]->[IMoment]
 [Calendar]->[Settings]
 [Calendar]->[HtmlUi]
+[Calendar]->[ParallelTask]
 
-
-
-
-
-
-[Customer]<>1-orders 0..*>[Order]
-[Order]++*-*>[LineItem]
-[Order]-1>[DeliveryMethod]
-[Order]*-*>[Product|EAN_Code|promo_price()]
-[Category]<->[Product]
-[DeliveryMethod]^[National]
-[DeliveryMethod]^[International]
+[ParallelTask]<->[IParallel]

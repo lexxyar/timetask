@@ -439,35 +439,72 @@ var TaskDataRow = (function () {
     return TaskDataRow;
 }());
 var TaskCollection = (function () {
-    function TaskCollection() {
+    function TaskCollection(_url, _id) {
+        if (_id === void 0) { _id = ''; }
+        this._url = _url;
+        this._id = _id;
+        this._onReadyFn = null;
         this._dataTasks = [];
         this._cRows = [];
+        this._ready = false;
+        this._runned = false;
+        this._error = false;
+        this._errMsg = '';
     }
-    TaskCollection.prototype.getData = function (callback) {
+    TaskCollection.prototype.run = function () {
+        this._runned = true;
+        this.fetchData();
+    };
+    TaskCollection.prototype.isReady = function () {
+        return this._ready;
+    };
+    TaskCollection.prototype.isRunned = function () {
+        return this._runned;
+    };
+    TaskCollection.prototype.getId = function () {
+        return this._id;
+    };
+    TaskCollection.prototype.setId = function (id) {
+        this._id = id;
+    };
+    TaskCollection.prototype.getResult = function () {
+        return this._response;
+    };
+    TaskCollection.prototype.onReady = function (callbackFn) {
+        if (callbackFn !== null) {
+            this._onReadyFn = callbackFn;
+        }
+        return this;
+    };
+    TaskCollection.prototype.fetchData = function () {
         var sett = Settings.getInstance();
+        var that = this;
         var xhr = new XMLHttpRequest();
-        xhr.open(sett.requestMethod, sett.taskDataUrl, true);
+        xhr.open(sett.requestMethod, this._url, true);
         xhr.send();
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     var resp = xhr.responseText;
                     var respJson = JSON.parse(resp);
-                    callback(respJson);
+                    that._response = respJson;
+                    that._runned = false;
+                    that._ready = true;
+                    that.loadArray(respJson);
+                    if (that._onReadyFn) {
+                        that._onReadyFn.call(this, respJson);
+                    }
                 }
                 else {
+                    that._runned = false;
+                    that._ready = true;
+                    that._error = true;
+                    that._errMsg = 'Send request error';
                 }
             }
             else {
             }
         };
-    };
-    TaskCollection.prototype.loadUrl = function (callbackFn) {
-        var _this = this;
-        this.getData(function (res) {
-            _this.loadArray(res);
-            callbackFn.call(_this);
-        });
     };
     TaskCollection.prototype.loadArray = function (jsonOArray) {
         this._dataTasks = [];
@@ -928,8 +965,92 @@ var HtmlUi = (function () {
     };
     return HtmlUi;
 }());
+var ParallelTask = (function () {
+    function ParallelTask(_onReadyFn) {
+        this._onReadyFn = _onReadyFn;
+        this._tasks = [];
+        this._runned = [];
+        this._finished = [];
+        this._timer = null;
+        this._lut = [];
+        this._interval = 200;
+        this._lut = [];
+        for (var i = 0; i < 256; i++) {
+            this._lut[i] = (i < 16 ? '0' : '') + (i).toString(16);
+        }
+    }
+    ParallelTask.prototype.setInterval = function (interval) {
+        this._interval = interval;
+        return this;
+    };
+    ParallelTask.prototype.addTask = function (task) {
+        if (task.getId() == '') {
+            task.setId(this.guid());
+        }
+        this._tasks.push(task);
+        return this;
+    };
+    ParallelTask.prototype.guid = function () {
+        var d0 = Math.random() * 0xffffffff | 0;
+        var d1 = Math.random() * 0xffffffff | 0;
+        var d2 = Math.random() * 0xffffffff | 0;
+        var d3 = Math.random() * 0xffffffff | 0;
+        return this._lut[d0 & 0xff]
+            + this._lut[d0 >> 8 & 0xff]
+            + this._lut[d0 >> 16 & 0xff]
+            + this._lut[d0 >> 24 & 0xff]
+            + '-'
+            + this._lut[d1 & 0xff]
+            + this._lut[d1 >> 8 & 0xff]
+            + '-'
+            + this._lut[d1 >> 16 & 0x0f | 0x40]
+            + this._lut[d1 >> 24 & 0xff]
+            + '-'
+            + this._lut[d2 & 0x3f | 0x80]
+            + this._lut[d2 >> 8 & 0xff]
+            + '-'
+            + this._lut[d2 >> 16 & 0xff] + this._lut[d2 >> 24 & 0xff]
+            + this._lut[d3 & 0xff]
+            + this._lut[d3 >> 8 & 0xff]
+            + this._lut[d3 >> 16 & 0xff]
+            + this._lut[d3 >> 24 & 0xff];
+    };
+    ParallelTask.prototype.run = function () {
+        while (this._tasks.length > 0) {
+            var task = this._tasks.shift();
+            if (!task.isRunned()) {
+                task.run();
+                this._runned.push(task);
+            }
+        }
+        var that = this;
+        this._timer = setInterval(function () { that.checkFinish(); }, this._interval);
+    };
+    ParallelTask.prototype.checkFinish = function () {
+        var _runned = [];
+        while (this._runned.length > 0) {
+            var task = this._runned.shift();
+            if (task.isReady()) {
+                this._finished.push(task);
+            }
+            else {
+                _runned.push(task);
+            }
+        }
+        while (_runned.length > 0) {
+            var task = _runned.shift();
+            this._runned.push(task);
+        }
+        if (this._runned.length === 0) {
+            clearInterval(this._timer);
+            this._onReadyFn.call(this);
+        }
+    };
+    return ParallelTask;
+}());
 var Calendar = (function () {
     function Calendar(settings) {
+        var _this = this;
         this._taskCollection = null;
         this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-size'));
         this._htmlFontFamily = window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-family');
@@ -947,6 +1068,7 @@ var Calendar = (function () {
         this._dataLoadCheckIterator = 0;
         this._dataLoadCheckInterval = 200;
         this._userVacationDataLoaded = false;
+        var sett = Settings.getInstance();
         this._events = new KeyValuePairCollection();
         this._events.set('taskclick', null);
         this._events.set('taskremove', null);
@@ -954,8 +1076,12 @@ var Calendar = (function () {
         this._userVacationDataLoaded = false;
         this._dataLoadTimer = null;
         this._dataLoadCheckIterator = 0;
+        this._parallel = new ParallelTask(function () { return _this.render(); });
         this._div = document.querySelector(settings.containerId);
-        this.loadUrlTaskData();
+        this._taskCollection = new TaskCollection(sett.taskDataUrl);
+        this._parallel
+            .addTask(this._taskCollection)
+            .run();
     }
     Calendar.getStartPeriod = function () {
         var sett = Settings.getInstance();
@@ -993,46 +1119,8 @@ var Calendar = (function () {
         }
         return ret;
     };
-    Calendar.prototype.checkDataLoaded = function () {
-        if (this._dataLoadTimer === null) {
-            console.log('Create timer');
-            var that_1 = this;
-            this._dataLoadTimer = setInterval(function () { return that_1.checkDataLoaded(); }, this._dataLoadCheckInterval);
-        }
-        else {
-            this._dataLoadCheckIterator++;
-            console.log('Check.....');
-            if (this._taskDataLoaded && this._userVacationDataLoaded) {
-                clearInterval(this._dataLoadTimer);
-            }
-        }
-        if (this._dataLoadCheckIterator * this._dataLoadCheckInterval > this._dataLoadCheckTimeout) {
-            console.error('Data not received. Timeout error');
-            clearInterval(this._dataLoadTimer);
-        }
-    };
     Calendar.prototype.on = function (eventName, callbackFn) {
         this._events.set(eventName, callbackFn);
-    };
-    Calendar.prototype.setData = function (data) {
-        this._taskCollection = new TaskCollection();
-        this._taskCollection.loadArray(data);
-        return this;
-    };
-    Calendar.prototype.loadUrlTaskData = function () {
-        var _this = this;
-        this._taskCollection = new TaskCollection();
-        var that = this;
-        this._taskCollection.loadUrl(function () {
-            that._taskDataLoaded = true;
-            _this.render();
-        });
-    };
-    Calendar.prototype.loadVacationUrl = function () {
-        this._userVacationDataLoaded = true;
-    };
-    Calendar.prototype.refresh = function () {
-        this.render();
     };
     Calendar.prototype.calculateGroupLabelMaxWidth = function () {
         var usersName = new KeyValuePairCollection();
@@ -1139,7 +1227,7 @@ var Calendar = (function () {
         this.generateDateRange(row, startMmt, diffDays);
         cWrapper.appendChild(row);
         if (!this._taskCollection) {
-            console.log('Data not loaded. Use method "setData" before render');
+            console.log('Data not loaded');
             return;
         }
         if (this._taskCollection.getSize() > 0) {
@@ -1385,19 +1473,3 @@ app.on('taskclick', function (e) {
 app.on('taskremove', function (id) {
     console.log('Removed task with ID', id);
 });
-var Tools = (function () {
-    function Tools() {
-    }
-    Tools.formatNumber = function (i) {
-        return Tools.pad(i);
-    };
-    Tools.pad = function (i, length) {
-        if (length === void 0) { length = 2; }
-        var s = i.toString();
-        for (var i_1 = s.length; i_1 < length; i_1++) {
-            s = '0' + s;
-        }
-        return s;
-    };
-    return Tools;
-}());
