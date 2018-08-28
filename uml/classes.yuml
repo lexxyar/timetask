@@ -47,4 +47,9 @@
 [Calendar]->[HtmlUi]
 [Calendar]->[ParallelTask]
 
-[ParallelTask]<->[IParallel]
+[ParallelTask]->[IParallel]
+
+[VacationDataRow]->[IVacationDataRow]
+[VacationDataRow]->[IMoment]
+
+[Vacation]

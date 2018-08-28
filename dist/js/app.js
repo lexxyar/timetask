@@ -1054,28 +1054,16 @@ var Calendar = (function () {
         this._taskCollection = null;
         this._htmlFontSize = parseFloat(window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-size'));
         this._htmlFontFamily = window.getComputedStyle(document.querySelector('body')).getPropertyValue('font-family');
-        this._monthStart = new Moment().startOf('month').getDate();
-        this._monthEnd = new Moment().endOf('month').getDate();
-        this._currentMonth = new Moment().getMonth();
-        this._currentYear = new Moment().getYear();
         this._renderStartTime = new Moment();
         this._renderEndTime = new Moment();
         this._maxUserName = 0;
         this._maxTaskType = 0;
-        this._taskDataLoaded = false;
-        this._dataLoadTimer = null;
-        this._dataLoadCheckTimeout = 60 * 1000;
-        this._dataLoadCheckIterator = 0;
+        this._dataLoadTimeout = 60 * 1000;
         this._dataLoadCheckInterval = 200;
-        this._userVacationDataLoaded = false;
         var sett = Settings.getInstance();
         this._events = new KeyValuePairCollection();
         this._events.set('taskclick', null);
         this._events.set('taskremove', null);
-        this._taskDataLoaded = false;
-        this._userVacationDataLoaded = false;
-        this._dataLoadTimer = null;
-        this._dataLoadCheckIterator = 0;
         this._parallel = new ParallelTask(function () { return _this.render(); });
         this._div = document.querySelector(settings.containerId);
         this._taskCollection = new TaskCollection(sett.taskDataUrl);
@@ -1473,3 +1461,36 @@ app.on('taskclick', function (e) {
 app.on('taskremove', function (id) {
     console.log('Removed task with ID', id);
 });
+var VacationDataRow = (function () {
+    function VacationDataRow(obj) {
+        this._id = obj.id;
+        this._user = obj.user;
+        this._start = new Moment(obj.start);
+        this._duration = obj.duration;
+    }
+    VacationDataRow.prototype.getId = function () {
+        return this._id;
+    };
+    VacationDataRow.prototype.getUser = function () {
+        return this._user;
+    };
+    VacationDataRow.prototype.getStart = function () {
+        return this._start;
+    };
+    VacationDataRow.prototype.getDuration = function () {
+        return this._duration;
+    };
+    return VacationDataRow;
+}());
+var UserVacation = (function () {
+    function UserVacation(_user) {
+        this._user = _user;
+        this._dates = [];
+    }
+    return UserVacation;
+}());
+var Vacation = (function () {
+    function Vacation() {
+    }
+    return Vacation;
+}());
