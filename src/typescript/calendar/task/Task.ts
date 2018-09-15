@@ -111,7 +111,7 @@ class Task {
         // }
     }
 
-    private isFirst(): boolean {
+    private isFirst(): boolean { 
         return this._dates.length == 0;
     }
 
