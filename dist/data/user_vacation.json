@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "user_id": 1,
+        "begda": "2018-10-13",
+        "length": 12
+    },
+    {
+        "id": 2,
+        "user_id": 5,
+        "begda": "2018-09-15",
+        "length": 7
+    },
+    {
+        "id": 4,
+        "user_id": 2,
+        "begda": "2018-10-09",
+        "length": 12
+    },
+    {
+        "id": 5,
+        "user_id": 5,
+        "begda": "2018-10-01",
+        "length": 8
+    },
+    {
+        "id": 8,
+        "user_id": 4,
+        "begda": "2018-10-01",
+        "length": 8
+    },
+    {
+        "id": 10,
+        "user_id": 3,
+        "begda": "2018-09-09",
+        "length": 10
+    }
+]

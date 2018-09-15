@@ -55,7 +55,7 @@ class Task {
                     if (this._dataRow.getDayoffdate()) {
                         let doff = this._dataRow.getDayoffdate();
                         if (doff) {
-                            if (doff.isSame(calDate.getMoment(), 'YYYYMMDD')) {
+                            if (doff.isSame(calDate.getMoment(), 'y-m-d')) {
                                 dayoffCnt--;
                                 this._dates.push(calDate);
                             } else {

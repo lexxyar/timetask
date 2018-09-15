@@ -120,20 +120,12 @@ class TaskCollection implements IParallel {
     }
 
     private group() {
+
+        // Create assoc array
         let _map = new KeyValuePairCollection();
         for (let j = 0; j < this._dataTasks.length; j++) {
             let cTask = this._dataTasks[j];
             let key = this.makeKey(cTask);
-            // if (key !== 'Baby_jcb' && key !== 'Beauty_mastercard') continue;
-            // if (key !== 'Automotive_jcb') continue;
-            // if (key !== 'Baby_jcb') continue;
-            // if (key !== 'Books_maestro' && key !== 'Books_mastercard' && key !== 'Computers_jcb') continue;
-            // if (key !== 'Computers_jcb') continue;
-            // if (key !== 'Books_maestro') continue;
-            // if (key !== 'Automotive_solo') continue;
-            // if (key !== 'Automotive_bankcard') continue;
-            // if (key !== 'Beauty_diners-club-carte-blanche') continue;
-
             if (_map.has(key)) {
                 let mapped = _map.get(key) as KeyValuePairCollection;
                 mapped.set(mapped.getSize() + 1, cTask);
@@ -144,6 +136,7 @@ class TaskCollection implements IParallel {
             }
         }
 
+        // Sort by date inside each group
         for (let i = 0; i < _map.getKeys().length; i++) {
             let value = _map.get(_map.getKeys()[i]);
             value.sort(
@@ -164,6 +157,7 @@ class TaskCollection implements IParallel {
 
         this._cRows = [];
 
+        // Grouping all tasks by rows 
         for (let k = 0; k < _map.getKeys().length; k++) {
             let kvpc: Array<KeyValuePair> = _map.get(_map.getKeys()[k]).toArray();
             let acTasks: Array<Task> = (_map.get(_map.getKeys()[k]) as KeyValuePairCollection).getValues() as Array<Task>;

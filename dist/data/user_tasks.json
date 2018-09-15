@@ -1,0 +1,1002 @@
+[
+    {
+        "id": 1,
+        "user_id": 5,
+        "begda": "2018-10-20",
+        "duration": 5,
+        "type": "Comedy",
+        "label": "Yesterday, Today and Tomorrow (Ieri, oggi, domani)",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-30"
+    },
+    {
+        "id": 2,
+        "user_id": 1,
+        "begda": "2018-10-22",
+        "duration": 4,
+        "type": "Action|Crime|Drama",
+        "label": "Revenge of the Green Dragons",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-07"
+    },
+    {
+        "id": 3,
+        "user_id": 5,
+        "begda": "2018-10-24",
+        "duration": 2,
+        "type": "Comedy|Musical",
+        "label": "Funny Lady",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-11"
+    },
+    {
+        "id": 4,
+        "user_id": 3,
+        "begda": "2018-09-21",
+        "duration": 7,
+        "type": "Action|Crime|Thriller",
+        "label": "French Connection, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-02"
+    },
+    {
+        "id": 5,
+        "user_id": 5,
+        "begda": "2018-10-21",
+        "duration": 1,
+        "type": "Horror|Mystery|Thriller",
+        "label": "Gathering, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 6,
+        "user_id": 1,
+        "begda": "2018-10-07",
+        "duration": 4,
+        "type": "Animation|Children|Comedy|Musical|Sci-Fi",
+        "label": "Jetsons: The Movie",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-08"
+    },
+    {
+        "id": 7,
+        "user_id": 2,
+        "begda": "2018-10-11",
+        "duration": 4,
+        "type": "Comedy|Western",
+        "label": "4 for Texas",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-20"
+    },
+    {
+        "id": 8,
+        "user_id": 5,
+        "begda": "2018-09-15",
+        "duration": 7,
+        "type": "Drama",
+        "label": "Alps (Alpeis)",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-26"
+    },
+    {
+        "id": 9,
+        "user_id": 4,
+        "begda": "2018-09-27",
+        "duration": 6,
+        "type": "Comedy|Drama|Romance",
+        "label": "Picture This",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-15"
+    },
+    {
+        "id": 10,
+        "user_id": 5,
+        "begda": "2018-09-20",
+        "duration": 5,
+        "type": "Action|Adventure|Drama",
+        "label": "Samurai III: Duel on Ganryu Island (a.k.a. Bushido) (Miyamoto Musashi kanketsuhen: kettô Ganryûjima)",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-13"
+    },
+    {
+        "id": 11,
+        "user_id": 1,
+        "begda": "2018-10-10",
+        "duration": 2,
+        "type": "Action|Adventure",
+        "label": "Hellfighters",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-11"
+    },
+    {
+        "id": 12,
+        "user_id": 3,
+        "begda": "2018-10-23",
+        "duration": 3,
+        "type": "Drama|Romance",
+        "label": "Lovers and Lollipops",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-12"
+    },
+    {
+        "id": 13,
+        "user_id": 5,
+        "begda": "2018-10-29",
+        "duration": 1,
+        "type": "Drama",
+        "label": "Permanent Record",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-17"
+    },
+    {
+        "id": 14,
+        "user_id": 5,
+        "begda": "2018-10-12",
+        "duration": 2,
+        "type": "Action|Comedy|Crime",
+        "label": "Drive Hard",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-24"
+    },
+    {
+        "id": 15,
+        "user_id": 4,
+        "begda": "2018-09-11",
+        "duration": 1,
+        "type": "Comedy|Drama",
+        "label": "Gayby",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-01"
+    },
+    {
+        "id": 16,
+        "user_id": 1,
+        "begda": "2018-10-14",
+        "duration": 2,
+        "type": "Action|Sci-Fi",
+        "label": "Nick Fury: Agent of S.H.I.E.L.D.",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-11"
+    },
+    {
+        "id": 17,
+        "user_id": 1,
+        "begda": "2018-10-06",
+        "duration": 2,
+        "type": "Comedy|Fantasy",
+        "label": "Heart and Souls",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 18,
+        "user_id": 3,
+        "begda": "2018-09-14",
+        "duration": 1,
+        "type": "Comedy|Fantasy|Thriller",
+        "label": "Stepford Wives, The",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-02"
+    },
+    {
+        "id": 19,
+        "user_id": 4,
+        "begda": "2018-10-26",
+        "duration": 5,
+        "type": "Documentary",
+        "label": "Bastards",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-07"
+    },
+    {
+        "id": 20,
+        "user_id": 4,
+        "begda": "2018-10-09",
+        "duration": 4,
+        "type": "Comedy",
+        "label": "Dealin' with Idiots",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-03"
+    },
+    {
+        "id": 21,
+        "user_id": 4,
+        "begda": "2018-10-07",
+        "duration": 2,
+        "type": "Drama",
+        "label": "We Are Marshall",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-08"
+    },
+    {
+        "id": 22,
+        "user_id": 2,
+        "begda": "2018-09-23",
+        "duration": 4,
+        "type": "Documentary",
+        "label": "Boxing Gym",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-25"
+    },
+    {
+        "id": 23,
+        "user_id": 5,
+        "begda": "2018-10-08",
+        "duration": 2,
+        "type": "Action|Comedy",
+        "label": "Kangaroo Jack",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 24,
+        "user_id": 1,
+        "begda": "2018-10-23",
+        "duration": 1,
+        "type": "Crime|Drama|Romance",
+        "label": "Petrified Forest, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-17"
+    },
+    {
+        "id": 25,
+        "user_id": 4,
+        "begda": "2018-10-19",
+        "duration": 1,
+        "type": "Drama|Romance",
+        "label": "Boy",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-13"
+    },
+    {
+        "id": 26,
+        "user_id": 4,
+        "begda": "2018-10-02",
+        "duration": 5,
+        "type": "Comedy|Drama",
+        "label": "Big Bully",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-19"
+    },
+    {
+        "id": 27,
+        "user_id": 2,
+        "begda": "2018-10-23",
+        "duration": 5,
+        "type": "Drama",
+        "label": "Circles (Krugovi)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-17"
+    },
+    {
+        "id": 28,
+        "user_id": 1,
+        "begda": "2018-09-13",
+        "duration": 7,
+        "type": "Adventure|Drama|Romance",
+        "label": "Shanghai Express",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-20"
+    },
+    {
+        "id": 29,
+        "user_id": 1,
+        "begda": "2018-09-27",
+        "duration": 2,
+        "type": "(no genres listed)",
+        "label": "Stephen Fry In America - New World",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-08"
+    },
+    {
+        "id": 30,
+        "user_id": 2,
+        "begda": "2018-10-19",
+        "duration": 1,
+        "type": "War",
+        "label": "Run Silent Run Deep",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-21"
+    },
+    {
+        "id": 31,
+        "user_id": 4,
+        "begda": "2018-09-18",
+        "duration": 5,
+        "type": "Action|Drama|Mystery|Sci-Fi|Thriller",
+        "label": "Knowing",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-03"
+    },
+    {
+        "id": 32,
+        "user_id": 3,
+        "begda": "2018-10-07",
+        "duration": 2,
+        "type": "Comedy",
+        "label": "Distinguished Gentleman, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-23"
+    },
+    {
+        "id": 33,
+        "user_id": 3,
+        "begda": "2018-10-23",
+        "duration": 7,
+        "type": "Animation|Drama|Fantasy",
+        "label": "Waking Life",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-29"
+    },
+    {
+        "id": 34,
+        "user_id": 2,
+        "begda": "2018-09-16",
+        "duration": 4,
+        "type": "Drama",
+        "label": "O Amor das Três Romãs",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-05"
+    },
+    {
+        "id": 35,
+        "user_id": 1,
+        "begda": "2018-09-22",
+        "duration": 1,
+        "type": "Adventure|Drama|Fantasy",
+        "label": "Red Tent, The (Krasnaya palatka)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-30"
+    },
+    {
+        "id": 36,
+        "user_id": 2,
+        "begda": "2018-09-22",
+        "duration": 2,
+        "type": "Comedy|Drama",
+        "label": "Honkytonk Man",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-09"
+    },
+    {
+        "id": 37,
+        "user_id": 5,
+        "begda": "2018-09-11",
+        "duration": 6,
+        "type": "Adventure|Drama|Romance|Western",
+        "label": "Grayeagle",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-17"
+    },
+    {
+        "id": 38,
+        "user_id": 4,
+        "begda": "2018-09-21",
+        "duration": 5,
+        "type": "Documentary",
+        "label": "Fall of the Republic: The Presidency of Barack H. Obama",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-04"
+    },
+    {
+        "id": 39,
+        "user_id": 4,
+        "begda": "2018-10-26",
+        "duration": 5,
+        "type": "Action|Comedy",
+        "label": "Mexican, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-21"
+    },
+    {
+        "id": 40,
+        "user_id": 4,
+        "begda": "2018-09-18",
+        "duration": 7,
+        "type": "Drama",
+        "label": "White Shadow, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-12"
+    },
+    {
+        "id": 41,
+        "user_id": 2,
+        "begda": "2018-09-12",
+        "duration": 2,
+        "type": "Comedy",
+        "label": "Life Is a Long Quiet River (La vie est un long fleuve tranquille)",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-29"
+    },
+    {
+        "id": 42,
+        "user_id": 5,
+        "begda": "2018-09-16",
+        "duration": 6,
+        "type": "Comedy",
+        "label": "Inquire Within",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 43,
+        "user_id": 2,
+        "begda": "2018-10-24",
+        "duration": 7,
+        "type": "Animation|Children",
+        "label": "Solan og Ludvig: Jul i Flåklypa",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-03"
+    },
+    {
+        "id": 44,
+        "user_id": 2,
+        "begda": "2018-10-04",
+        "duration": 5,
+        "type": "Documentary",
+        "label": "Shepard & Dark",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-18"
+    },
+    {
+        "id": 45,
+        "user_id": 4,
+        "begda": "2018-10-08",
+        "duration": 6,
+        "type": "Drama",
+        "label": "Twice in a Lifetime",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-14"
+    },
+    {
+        "id": 46,
+        "user_id": 1,
+        "begda": "2018-10-16",
+        "duration": 4,
+        "type": "Action|Adventure|Drama",
+        "label": "White Squall",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-17"
+    },
+    {
+        "id": 47,
+        "user_id": 4,
+        "begda": "2018-09-15",
+        "duration": 2,
+        "type": "Action|Drama|Thriller",
+        "label": "Bummer (Bumer)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-05"
+    },
+    {
+        "id": 48,
+        "user_id": 4,
+        "begda": "2018-09-25",
+        "duration": 5,
+        "type": "Action|Drama",
+        "label": "Men with Guns",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-03"
+    },
+    {
+        "id": 49,
+        "user_id": 3,
+        "begda": "2018-10-18",
+        "duration": 5,
+        "type": "Animation|Children|Romance",
+        "label": "Samson & Sally",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 50,
+        "user_id": 3,
+        "begda": "2018-10-26",
+        "duration": 1,
+        "type": "Comedy|Crime",
+        "label": "Bad Santa",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-07"
+    },
+    {
+        "id": 51,
+        "user_id": 5,
+        "begda": "2018-09-06",
+        "duration": 2,
+        "type": "Comedy|Drama",
+        "label": "Vicious Kind, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-30"
+    },
+    {
+        "id": 52,
+        "user_id": 3,
+        "begda": "2018-10-02",
+        "duration": 2,
+        "type": "Horror",
+        "label": "Zeder",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-12"
+    },
+    {
+        "id": 53,
+        "user_id": 4,
+        "begda": "2018-09-27",
+        "duration": 4,
+        "type": "Drama",
+        "label": "Shadows (Cienie)",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-16"
+    },
+    {
+        "id": 54,
+        "user_id": 1,
+        "begda": "2018-09-20",
+        "duration": 6,
+        "type": "Documentary",
+        "label": "I Like Killing Flies",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-24"
+    },
+    {
+        "id": 55,
+        "user_id": 3,
+        "begda": "2018-09-22",
+        "duration": 5,
+        "type": "Drama|Romance",
+        "label": "Buffalo '66 (a.k.a. Buffalo 66)",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-08"
+    },
+    {
+        "id": 56,
+        "user_id": 3,
+        "begda": "2018-09-18",
+        "duration": 2,
+        "type": "Action|Crime|Thriller",
+        "label": "Die Hard",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-01"
+    },
+    {
+        "id": 57,
+        "user_id": 3,
+        "begda": "2018-10-07",
+        "duration": 3,
+        "type": "Action|Adventure|Crime",
+        "label": "Tiger Brigades, The (Les brigades du Tigre)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-20"
+    },
+    {
+        "id": 58,
+        "user_id": 1,
+        "begda": "2018-09-18",
+        "duration": 1,
+        "type": "Drama",
+        "label": "Blue Spring (Aoi haru)",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-03"
+    },
+    {
+        "id": 59,
+        "user_id": 2,
+        "begda": "2018-10-11",
+        "duration": 1,
+        "type": "Drama|Romance",
+        "label": "Crimson Petal and the White, The",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-16"
+    },
+    {
+        "id": 60,
+        "user_id": 2,
+        "begda": "2018-09-29",
+        "duration": 1,
+        "type": "Comedy|Drama|Mystery|Romance",
+        "label": "Penguin Pool Murder",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-08"
+    },
+    {
+        "id": 61,
+        "user_id": 1,
+        "begda": "2018-09-20",
+        "duration": 3,
+        "type": "Documentary",
+        "label": "Shanghai Ghetto",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-24"
+    },
+    {
+        "id": 62,
+        "user_id": 4,
+        "begda": "2018-10-26",
+        "duration": 2,
+        "type": "Adventure|Sci-Fi",
+        "label": "Star Trek: The Motion Picture",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-19"
+    },
+    {
+        "id": 63,
+        "user_id": 2,
+        "begda": "2018-10-08",
+        "duration": 3,
+        "type": "Documentary|Drama",
+        "label": "Most Likely to Succeed",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-23"
+    },
+    {
+        "id": 64,
+        "user_id": 4,
+        "begda": "2018-10-11",
+        "duration": 4,
+        "type": "Action|Drama",
+        "label": "On the Job",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-21"
+    },
+    {
+        "id": 65,
+        "user_id": 5,
+        "begda": "2018-09-25",
+        "duration": 7,
+        "type": "Action|Drama",
+        "label": "New Tale of Zatoichi (Shin Zatôichi monogatari) (Zatôichi 3)",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-09"
+    },
+    {
+        "id": 66,
+        "user_id": 5,
+        "begda": "2018-10-17",
+        "duration": 2,
+        "type": "Adventure|Animation|Fantasy|Romance",
+        "label": "Howl's Moving Castle (Hauru no ugoku shiro)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-20"
+    },
+    {
+        "id": 67,
+        "user_id": 5,
+        "begda": "2018-09-29",
+        "duration": 5,
+        "type": "Documentary",
+        "label": "The Ghosts in Our Machine",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-12"
+    },
+    {
+        "id": 68,
+        "user_id": 3,
+        "begda": "2018-10-29",
+        "duration": 5,
+        "type": "Drama",
+        "label": "A Follower for Emily",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-04"
+    },
+    {
+        "id": 69,
+        "user_id": 5,
+        "begda": "2018-10-15",
+        "duration": 6,
+        "type": "Action|Adventure|Drama|Thriller|War",
+        "label": "Triple Cross",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-26"
+    },
+    {
+        "id": 70,
+        "user_id": 5,
+        "begda": "2018-09-29",
+        "duration": 1,
+        "type": "Comedy",
+        "label": "Multiplicity",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-09"
+    },
+    {
+        "id": 71,
+        "user_id": 5,
+        "begda": "2018-09-20",
+        "duration": 2,
+        "type": "Action|Adventure|Comedy|Crime",
+        "label": "99 and 44/100% Dead",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-16"
+    },
+    {
+        "id": 72,
+        "user_id": 5,
+        "begda": "2018-09-06",
+        "duration": 4,
+        "type": "Documentary",
+        "label": "Hot Coffee",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-06"
+    },
+    {
+        "id": 73,
+        "user_id": 5,
+        "begda": "2018-10-07",
+        "duration": 5,
+        "type": "Comedy|Romance",
+        "label": "Still Breathing",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-03"
+    },
+    {
+        "id": 74,
+        "user_id": 4,
+        "begda": "2018-09-08",
+        "duration": 2,
+        "type": "Comedy|Drama|Romance",
+        "label": "Majestic, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-20"
+    },
+    {
+        "id": 75,
+        "user_id": 5,
+        "begda": "2018-10-06",
+        "duration": 5,
+        "type": "Drama",
+        "label": "Human Resources (Ressources humaines)",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-03"
+    },
+    {
+        "id": 76,
+        "user_id": 5,
+        "begda": "2018-10-11",
+        "duration": 1,
+        "type": "Drama",
+        "label": "Ginger & Rosa",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-07"
+    },
+    {
+        "id": 77,
+        "user_id": 5,
+        "begda": "2018-10-05",
+        "duration": 2,
+        "type": "Comedy",
+        "label": "Great Buck Howard, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-11"
+    },
+    {
+        "id": 78,
+        "user_id": 1,
+        "begda": "2018-09-19",
+        "duration": 5,
+        "type": "Sci-Fi",
+        "label": "Gappa: The Triphibian Monsters (AKA Monster from a Prehistoric Planet) (Daikyojû Gappa)",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-25"
+    },
+    {
+        "id": 79,
+        "user_id": 1,
+        "begda": "2018-09-11",
+        "duration": 5,
+        "type": "Drama|Thriller",
+        "label": "Boxer, The",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-20"
+    },
+    {
+        "id": 80,
+        "user_id": 5,
+        "begda": "2018-09-22",
+        "duration": 3,
+        "type": "Action",
+        "label": "Challenge, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-26"
+    },
+    {
+        "id": 81,
+        "user_id": 1,
+        "begda": "2018-09-06",
+        "duration": 3,
+        "type": "Musical|Romance",
+        "label": "From Justin to Kelly",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-18"
+    },
+    {
+        "id": 82,
+        "user_id": 2,
+        "begda": "2018-10-19",
+        "duration": 7,
+        "type": "Comedy|Drama",
+        "label": "Don't Tell Anyone (No se lo digas a nadie)",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-16"
+    },
+    {
+        "id": 83,
+        "user_id": 2,
+        "begda": "2018-10-25",
+        "duration": 3,
+        "type": "Drama|War",
+        "label": "5th Day of Peace (Dio è con noi)",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-27"
+    },
+    {
+        "id": 84,
+        "user_id": 3,
+        "begda": "2018-09-30",
+        "duration": 4,
+        "type": "Comedy|Crime|Drama",
+        "label": "Spring Breakers",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-30"
+    },
+    {
+        "id": 85,
+        "user_id": 1,
+        "begda": "2018-09-26",
+        "duration": 3,
+        "type": "Comedy|Horror",
+        "label": "Revenant, The",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-07"
+    },
+    {
+        "id": 86,
+        "user_id": 3,
+        "begda": "2018-10-22",
+        "duration": 4,
+        "type": "Drama",
+        "label": "Gentleman's Game, A",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-01"
+    },
+    {
+        "id": 87,
+        "user_id": 2,
+        "begda": "2018-09-28",
+        "duration": 7,
+        "type": "Documentary|Musical",
+        "label": "Fados",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-18"
+    },
+    {
+        "id": 88,
+        "user_id": 3,
+        "begda": "2018-10-04",
+        "duration": 6,
+        "type": "Horror",
+        "label": "Sweet Home",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-22"
+    },
+    {
+        "id": 89,
+        "user_id": 1,
+        "begda": "2018-10-12",
+        "duration": 4,
+        "type": "Action|Fantasy|Horror|Sci-Fi|Thriller",
+        "label": "Phantasm II",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-30"
+    },
+    {
+        "id": 90,
+        "user_id": 5,
+        "begda": "2018-09-15",
+        "duration": 7,
+        "type": "Western",
+        "label": "3 Bad Men",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-03"
+    },
+    {
+        "id": 91,
+        "user_id": 2,
+        "begda": "2018-10-25",
+        "duration": 2,
+        "type": "Drama",
+        "label": "Kai Po Che!",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-14"
+    },
+    {
+        "id": 92,
+        "user_id": 1,
+        "begda": "2018-10-02",
+        "duration": 7,
+        "type": "Drama",
+        "label": "Frozen",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-23"
+    },
+    {
+        "id": 93,
+        "user_id": 2,
+        "begda": "2018-10-27",
+        "duration": 4,
+        "type": "Adventure|Comedy",
+        "label": "Mrs. Pollifax-Spy",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-28"
+    },
+    {
+        "id": 94,
+        "user_id": 1,
+        "begda": "2018-09-02",
+        "duration": 7,
+        "type": "Drama",
+        "label": "Get on the Bus",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-15"
+    },
+    {
+        "id": 95,
+        "user_id": 1,
+        "begda": "2018-10-28",
+        "duration": 7,
+        "type": "Musical|Romance",
+        "label": "Anything But Love (a.k.a. Standard Time)",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-02"
+    },
+    {
+        "id": 96,
+        "user_id": 5,
+        "begda": "2018-10-24",
+        "duration": 7,
+        "type": "Comedy",
+        "label": "Brighton Beach Memoirs",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-23"
+    },
+    {
+        "id": 97,
+        "user_id": 3,
+        "begda": "2018-10-28",
+        "duration": 6,
+        "type": "Adventure|Children",
+        "label": "Spy Kids 2: The Island of Lost Dreams",
+        "dayoff": 1,
+        "dayoffdate": "2018-09-26"
+    },
+    {
+        "id": 98,
+        "user_id": 5,
+        "begda": "2018-09-26",
+        "duration": 4,
+        "type": "Action|Adventure|Romance",
+        "label": "King Solomon's Mines",
+        "dayoff": 0,
+        "dayoffdate": "2018-09-04"
+    },
+    {
+        "id": 99,
+        "user_id": 3,
+        "begda": "2018-10-27",
+        "duration": 3,
+        "type": "Drama|Romance",
+        "label": "Carrington",
+        "dayoff": 0,
+        "dayoffdate": "2018-10-18"
+    },
+    {
+        "id": 100,
+        "user_id": 3,
+        "begda": "2018-10-03",
+        "duration": 1,
+        "type": "Comedy|Drama|Romance",
+        "label": "Next Stop Wonderland",
+        "dayoff": 1,
+        "dayoffdate": "2018-10-22"
+    }
+]

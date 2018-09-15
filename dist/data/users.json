@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "name": "Elyssa Trask",
+        "email": "etrask0@virginia.edu",
+        "phone": "(862) 2985205"
+    },
+    {
+        "id": 2,
+        "name": "Iain Barnsdall",
+        "email": "ibarnsdall1@apple.com",
+        "phone": "(761) 7703033"
+    },
+    {
+        "id": 3,
+        "name": "Rachel Geering",
+        "email": "rgeering2@wikispaces.com",
+        "phone": "(818) 6014592"
+    },
+    {
+        "id": 4,
+        "name": "Calli Castanaga",
+        "email": "ccastanaga3@angelfire.com",
+        "phone": "(573) 4806257"
+    },
+    {
+        "id": 5,
+        "name": "Barbabas Perrelli",
+        "email": "bperrelli4@slideshare.net",
+        "phone": "(141) 5233955"
+    }
+]

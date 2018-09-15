@@ -136,13 +136,14 @@ class Calendar {
 
         this._parallel = new ParallelTask(() => this.render());
 
-        // Find container for calendar
-        this._div = document.querySelector(settings.containerId) as HTMLElement;
-
         this._taskCollection = new TaskCollection(sett.taskDataUrl);
+        // this._taskCollection = new TaskCollection(sett.vacationDataUrl);
         this._parallel
             .addTask(this._taskCollection)
             .run();
+
+        // Find container for calendar
+        this._div = document.querySelector(settings.containerId) as HTMLElement;
     }
 
     public on(eventName: string, callbackFn: any) {
